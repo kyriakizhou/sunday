@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowledge Graph Visualization for Obsidian - Sunday</title>
+  <meta name="description" content="Project notes for an Obsidian knowledge graph visualization plugin using embeddings and Three.js.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>Knowledge Graph Visualization for Obsidian</h1>
+        <p>ollama / embeddings / three.js / webgl / typescript</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <p>I have always wanted to visualize every fact I know, every thought I have had, and the feelings behind them.
+          More importantly, I want to see the connections among them, especially the ones I did not know existed.</p>
+        <p>Traditional note-taking pushes us into folders and timelines, but minds do not work that way. Ideas connect
+          across disciplines, insights emerge from unexpected combinations, and understanding deepens when hidden
+          relationships between concepts become visible.</p>
+        <p>That is why I built this Obsidian knowledge visualization plugin. It uses AI to understand the semantic
+          meaning of notes and renders them as a 3D graph where proximity reflects conceptual similarity. Instead of
+          hunting through folders, you can see how ideas relate to each other.</p>
+        <p>When a note about photography appears close to something about psychology, or when a random thought from
+          months ago suddenly connects to current research, the tool stops being only an organizer. It becomes a way to
+          explore the landscape of your own understanding.</p>
+
+        <h3>Plugin Views</h3>
+        <figure class="detail-figure project-shot">
+          <video controls playsinline preload="metadata" poster="../assets/img/obsidian/semantic-graph-dark.jpg"
+            aria-label="Demo video of the Obsidian semantic knowledge graph plugin.">
+            <source src="../assets/video/obsidian/knowledge-graph-demo.mp4" type="video/mp4">
+          </video>
+          <figcaption>Demo walkthrough of the semantic graph experience inside Obsidian.</figcaption>
+        </figure>
+
+        <figure class="detail-figure project-shot">
+          <img src="../assets/img/obsidian/semantic-graph-dark.jpg"
+            alt="Obsidian note editor next to a dark semantic knowledge graph visualization.">
+          <figcaption>Semantic graph view in dark mode: notes become clustered nodes, with distance reflecting conceptual
+            similarity.</figcaption>
+        </figure>
+
+        <figure class="detail-figure project-shot">
+          <img src="../assets/img/obsidian/plugin-settings.jpg"
+            alt="Knowledge Graph Plugin settings showing Ollama API port, embedding model, and graph options.">
+          <figcaption>Plugin settings: local Ollama configuration, embedding model selection, automatic embedding
+            generation, folder coloring, and graph display options.</figcaption>
+        </figure>
+
+        <figure class="detail-figure project-shot">
+          <img src="../assets/img/obsidian/semantic-graph-light.jpg"
+            alt="Obsidian note editor next to a light semantic knowledge graph visualization.">
+          <figcaption>Light mode graph view: the same semantic layout can be rendered against a brighter workspace for
+            scanning and presentation.</figcaption>
+        </figure>
+
+        <h3>Embedding Pipeline</h3>
+        <p>I integrated Ollama and tested multiple embedding models, including all-MiniLM, nomic-embed-text, and
+          mxbai-embed-large. The pipeline used TypeScript and Python for batch processing, chunking, and embedding
+          generation.</p>
+
+        <h3>Graph Updates</h3>
+        <p>The graph algorithm was designed for incremental updates so the plugin did not need to recompute the whole
+          vault every time a note changed. That reduced the core update path from quadratic behavior toward linear work
+          for common edits.</p>
+
+        <h3>Visualization</h3>
+        <p>The frontend used Three.js and WebGL with PCA dimensionality reduction, interactive ray-casting, and adaptive
+          lighting so the graph felt navigable rather than just technically correct.</p>
+
+        <h3>Perfect For</h3>
+        <ul class="detail-list">
+          <li>Researchers discovering unexpected connections in their literature.</li>
+          <li>Writers exploring thematic relationships across their work.</li>
+          <li>Knowledge workers visualizing the structure of their expertise.</li>
+          <li>Students seeing how concepts interconnect across subjects.</li>
+        </ul>
+
+        <h3>Source Code</h3>
+        <p><a href="https://github.com/kyriakizhou/obsidian-semantic-embedding-graph">GitHub repository</a></p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

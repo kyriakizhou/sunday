@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sunday</title>
+  <meta name="description" content="Sunday's personal website.">
+  <link rel="stylesheet" href="assets/css/site.css?v=20260601">
+</head>
+
+<body class="landing-page">
+  <main class="landing" aria-label="Sunday's introduction">
+    <div class="intro-panel">
+      <p class="kicker">你好 / hello</p>
+      <h1 class="intro-lead">Sunday Zhou</h1>
+      <p class="intro">I enjoy learning and building fun stuff, and I try to leave things a little better than I found
+        them!</p>
+      <nav class="topic-links" aria-label="Site sections">
+        <a href="projects.html" data-word-pool="projects">Projects</a>
+        <a href="photography.html" data-word-pool="photography">Photography</a>
+        <a href="field-notes.html" data-word-pool="fieldNotes">Field Notes</a>
+      </nav>
+    </div>
+    <iframe class="blink-visual" src="blink_shutter.html?embed=1" title="The Blink Memory Shutter"
+      allowtransparency="true"></iframe>
+  </main>
+
+  <script>
+    const blinkFrame = document.querySelector(".blink-visual");
+    const topicLinks = document.querySelectorAll("[data-word-pool]");
+
+    function setBlinkWords(topic = "default") {
+      blinkFrame.contentWindow?.postMessage({ type: "blink:setWords", topic }, "*");
+    }
+
+    topicLinks.forEach((link) => {
+      link.addEventListener("pointerenter", () => setBlinkWords(link.dataset.wordPool));
+      link.addEventListener("focus", () => setBlinkWords(link.dataset.wordPool));
+      link.addEventListener("pointerleave", () => setBlinkWords());
+      link.addEventListener("blur", () => setBlinkWords());
+    });
+  </script>
+</body>
+
+</html>

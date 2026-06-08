@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PR Release Summary Tool - Sunday</title>
+  <meta name="description"
+    content="Project notes for an AI release summary and risk analysis tool for pull requests.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>PR Release Summary Tool</h1>
+        <p>release engineering / ai summarization / risk analysis / java / slack automation</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <p>Because of my organization's release cadence, there can be at least a three-week gap between an engineer's code
+          commit and its deployment to production. I built an AI release summary and risk analysis tool to act as a
+          final checkpoint before each release.</p>
+        <p>The tool reads pull-request diffs for the release, generates concise summaries of important code changes,
+          highlights risky or operationally sensitive changes, and recommends Splunk and Hubble monitoring for release
+          day.</p>
+
+        <h3>Architecture</h3>
+        <ul class="detail-list">
+          <li>Built asynchronous processing in Java with <code>CompletableFuture</code> so release summaries could be
+            generated across many teams and engineers without blocking on one slow model call.</li>
+          <li>Integrated with the existing release schedule in the codebase, where the application bundle scheduler runs
+            every day.</li>
+          <li>Cached successfully generated PR summaries so reruns did not waste model calls or rewrite stable release
+            output.</li>
+          <li>Sent automatic Slack notifications to me when generation failed, turning errors into visible follow-up
+            instead of silent release-report gaps.</li>
+        </ul>
+
+        <h3>Context Window Design</h3>
+        <p>The hardest design constraint was fitting real production diffs into model context windows. I first tried
+          sending all engineers' PR diffs for a team in one prompt. That was simple, but it did not scale. I then moved
+          to one prompt per engineer, and finally to multi-batch truncation for engineers with larger diff sets.</p>
+        <p>That chunking design made the system future-ready: the tool could handle larger teams, noisier release
+          trains, and unusually active engineers while still preserving enough code context for useful summaries.</p>
+
+        <h3>Generated Report</h3>
+        <ul class="detail-list">
+          <li><strong>Important code changes:</strong> changes are grouped by feature. Each bullet includes a PR link,
+            the engineer's email, and a one-sentence AI-generated summary.</li>
+          <li><strong>Risk analysis:</strong> the report highlights the most critical changes, including feature
+            launches, global property enablement, and backward-incompatible changes.</li>
+          <li><strong>Release-day monitoring:</strong> the report suggests Splunk and Hubble dashboards, alerts, and
+            signals to watch during rollout.</li>
+        </ul>
+
+        <h3>Adoption</h3>
+        <p>The tool has been running in production to generate release summaries for 33 teams and 300+ engineers every
+          release. I presented it to the org VP and recommended adoption by parallel ASE Commerce organizations.</p>
+        <p>I also expanded it for QA and testing engineers, allowing them to sign up for summaries of code changes from
+          the engineers they work with most closely.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

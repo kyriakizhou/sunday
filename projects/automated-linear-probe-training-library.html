@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EasyProbe - Sunday</title>
+  <meta name="description"
+    content="Project notes for EasyProbe, an automated linear probe training library for mechanistic interpretability.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>EasyProbe</h1>
+        <p>linear probes / activations / NNSight / TransformerLens / steering</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <p>EasyProbe is a mechanistic interpretability library I built as a BlueDot Technical AI Safety project to
+          remove the repetitive engineering around linear probe experiments. It takes prompts and binary labels,
+          extracts activations, trains probes across model internals, and returns interactive heatmaps that show where a
+          feature is linearly encoded.</p>
+        <p><a href="https://github.com/kyriakizhou/easyprobe">Repository and API documentation</a></p>
+
+        <h3>What It Provides</h3>
+        <ul class="detail-list">
+          <li>One-liner probing across model layers with minimal setup.</li>
+          <li>Multi-dimensional sweeps over layers, components, token positions, training stages, and models.</li>
+          <li>Classification and generalization tests using trained probes.</li>
+          <li>Model steering through learned probe directions, including experimental Dual Steering support.</li>
+          <li>Performance tooling: batched activation extraction, activation and probe checkpoints, shared activation
+            reuse, GPU memory cleanup, parallel training, and profiling reports.</li>
+        </ul>
+
+        <h3>Factuality Demo</h3>
+        <p>To test the library end-to-end, I trained probes on 800 factually correct and incorrect statements using
+          OLMo-3-1025-7B, then evaluated generalization on 100 unseen statements and experimented with steering from
+          the learned factuality direction.</p>
+        <p>The demo is designed as a visual tour through the questions EasyProbe should make cheap to ask: where a
+          feature appears, which component carries it, which token position concentrates it, whether related features
+          emerge at different times, and how the encoding changes across training stages.</p>
+
+        <figure class="detail-figure detail-figure-compact">
+          <img src="../assets/img/easyprobe/factuality-layer-sweep.png"
+            alt="Accuracy heatmap for factuality probes across OLMo-3 layers at the final residual stream position.">
+          <figcaption>Layer sweep: factuality becomes linearly separable in the residual stream around layers 7 to 14,
+            jumps above 80% accuracy, and peaks at 81.9%.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-compact">
+          <img src="../assets/img/easyprobe/factuality-component-comparison.png"
+            alt="Accuracy heatmap comparing factuality probes on attention, MLP, and residual stream components.">
+          <figcaption>Component comparison: attention is stronger than MLPs in the middle layers, while late MLP outputs
+            catch up. The residual stream remains strongest overall, peaking at 83.7%.</figcaption>
+        </figure>
+
+        <figure class="detail-figure">
+          <img src="../assets/img/easyprobe/factuality-position-sweep.png"
+            alt="Accuracy heatmap showing factuality probe performance across layers, token positions, and residual stream components.">
+          <figcaption>Position sweep: the factuality signal is weak at early token positions and concentrates near the
+            final tokens, peaking at 85.7%.</figcaption>
+        </figure>
+
+        <figure class="detail-figure">
+          <img src="../assets/img/easyprobe/factuality-multi-feature.png"
+            alt="Accuracy heatmap comparing factuality and topic probes on shared prompts.">
+          <figcaption>Multi-feature comparison: topic is separable immediately, while factuality stays near baseline
+            until layer 7 and climbs later. EasyProbe reuses the same cached activations for both probes.</figcaption>
+        </figure>
+
+        <figure class="detail-figure">
+          <img src="../assets/img/easyprobe/factuality-training-stages.png"
+            alt="Accuracy heatmaps comparing factuality probes across three OLMo-3 training stages.">
+          <figcaption>Training-stage comparison: factuality encoding gets more stable through the forward pass as the
+            model matures from early pretraining to later long-context training.</figcaption>
+        </figure>
+
+        <p>The best residual-stream probe from the layer sweep achieved 82.5% on the initial test split and 92% accuracy
+          on a fresh 100-statement out-of-distribution set.</p>
+        <p>The <a
+            href="https://docs.google.com/document/d/1sGjyuVqbk8-GxOt1OwYua_36RZ1YyAaahI_Ef1suFg0/edit?tab=t.0#heading=h.txivyvxyxf8r">full
+            technical write-up</a> includes heatmap screenshots for the layer, component, position, multi-feature, and
+          training-stage sweeps.</p>
+
+        <h3>Implementation Details</h3>
+        <p>Probe training uses scikit-learn logistic regression with L2 penalty, an LBFGS solver, an 80/20 stratified
+          train/test split, and selectivity reporting against a random baseline. Activations are normalized with
+          z-score normalization per layer/component pair, and the library supports both TransformerLens and NNSight
+          backends.</p>
+        <p>The activation extraction path is checkpointed by batch, tracks progress in a resumable metadata file, and
+          can clean up intermediate activations after successful completion. Shared-prompt multi-feature runs reuse the
+          same forward-pass activations across probes, which keeps multi-label experiments much cheaper.</p>
+
+        <h3>Probe Usage</h3>
+        <p>After training, probe weights can be reused as lightweight classifiers or as steering vectors. EasyProbe can
+          classify new text by extracting the relevant activations and applying the best trained probe, or inject the
+          learned direction into the residual stream to steer generation.</p>
+        <p>I also added support for <a href="https://www.arxiv.org/abs/2602.15293">Dual Steering</a>, which treats probe
+          weights and activations as living in different geometric spaces and filters the steering update to reduce
+          off-topic semantic drift.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

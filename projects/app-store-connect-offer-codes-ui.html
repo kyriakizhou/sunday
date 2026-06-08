@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Store Connect Discount Codes UI - Sunday</title>
+  <meta name="description" content="Project notes for the App Store Connect In-App Purchase Discount Codes UI.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>App Store Connect Discount Codes UI</h1>
+        <p>react / redux / typescript / app store connect</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <p>A partner team was short-staffed on a critical cross-functional project approaching WWDC 2025, so I
+          volunteered to be the DRI for the App Store Connect UI implementation of In-App Purchase Discount Codes. The
+          feature was a developer-facing tool with complex state management, validation, and pricing workflows.</p>
+
+        <h3>Scope</h3>
+        <p>I built the complete UI implementation in React, Redux, JavaScript, HTML, and CSS on top of the existing
+          internal component framework. The work included a multi-step offer creation modal, offer list and detail views,
+          pricing data export, loading states, and server-integrated error handling.</p>
+
+        <h3>Offer Creation Flow</h3>
+        <ul class="detail-list">
+          <li>Built a multi-step creation modal with field length checks, required selections, and step-by-step
+            validation so developers could not advance with incomplete frontend-detectable inputs.</li>
+          <li>Added intelligent prepopulation, including inferring territories from existing purchases.</li>
+          <li>Implemented automatic price equalization calculations across 175+ countries.</li>
+          <li>Added CSV export functionality for pricing data.</li>
+        </ul>
+
+        <h3>Error Handling</h3>
+        <p>I worked with the server team to map error cases and error codes into useful UI behavior. If the frontend
+          could detect the issue, such as a required selection or offer-name length requirement, the flow blocked
+          progress immediately. For server-only errors, such as a duplicate offer name, the UI redirected the developer
+          to the problematic field, highlighted it in red, and showed a clear recovery message.</p>
+
+        <h3>Performance</h3>
+        <p>I minimized network requests by checking the Redux store for previously fetched data before making new calls.
+          For transient user input, I used React local state instead of pushing every intermediate edit through Redux,
+          avoiding unnecessary re-renders.</p>
+
+        <h3>Design Collaboration</h3>
+        <p>Design resources were limited, and I was working from mockups rather than a full specification. I matched
+          spacing by resizing my browser to the mockup dimensions and comparing screenshots, then proactively set up
+          feedback sessions with the designer to review the UI and resolve corner cases.</p>
+
+        <h3>Result</h3>
+        <p>I onboarded in a few hours, finished three weeks ahead of the partner team's schedule, and presented the work
+          to senior leadership. I also questioned the absence of TypeScript in the codebase, which helped start the
+          team's TypeScript adoption.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

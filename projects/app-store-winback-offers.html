@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Store Winback Offers - Sunday</title>
+  <meta name="description" content="Project notes for App Store Winback Offers.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>App Store Winback Offers</h1>
+        <p>api design / eligibility checks / performance optimization / java</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <p>I implemented customer eligibility checks for App Store win-back offers, including three backend endpoints
+          and support for offer redemption during the buy flow. The feature was announced during WWDC 2024 and has
+          supported 500 million+ offer redemptions since launch. Two endpoints served upstream client teams with
+          different
+          request shapes, and one supported manage-subscription flows.</p>
+
+        <h3>API Design</h3>
+        <p>The endpoints had to work across multiple upstream teams, which meant terminology, field names, and failure
+          semantics needed to be precise. We went through roughly 15 rounds of API design to preserve backward
+          compatibility and make overloaded terms explicit.</p>
+        <p>One endpoint supported batch requests: a client could pass a list of offer IDs, and the service checked
+          eligibility for each offer in one request to avoid repeated network calls. A key lesson from that design was
+          that batch APIs should return item-level errors rather than making the whole batch fail at the top level.</p>
+
+        <h3>Eligibility Logic</h3>
+        <ul class="detail-list">
+          <li>Returned early when the app in the request had no win-back offers configured.</li>
+          <li>Used additional request context, such as app ID, to filter transient data and avoid unnecessary secondary
+            data fetches.</li>
+          <li>Designed offer ranking while pushing back on unnecessary processing in the critical path.</li>
+          <li>Added comprehensive exception handling for app, subscription, and offer states, including unavailable
+            sale states, admin flags, and content-fetch failures.</li>
+        </ul>
+        <p>The goal was to return useful enough error information for client teams to guide recovery, retry, or direct
+          purchase flows instead of giving users a generic failure.</p>
+
+        <h3>Performance Work</h3>
+        <p>I designed production A/B-style profiling to compare performance-sensitive implementation paths. For one
+          path, I compared sequential streams and parallel streams when checking eligibility across a user's
+          subscription history. I pseudo-randomly routed traffic between variants, launched both in production, and
+          collected enough data to compare them. Parallel streams were 7% faster and kept the code readable, so I kept
+          that version.</p>
+        <p>For another path, I compared single fetch plus join against batch fetch for salable data. The more complex
+          version did not show a statistically significant improvement, so I kept the cleaner batch-fetch
+          implementation.</p>
+
+        <h3>Tooling</h3>
+        <p>I also built internal tooling for checking offer eligibility directly. It was a small investment, but it
+          turned a repeated debugging and support workflow into something many people could run without needing to ask
+          the service owner for help.</p>
+
+        <h3>Result</h3>
+        <p>The eligibility status endpoint averaged about 20 ms, with P95 around 55 ms, and handled roughly 400-500
+          requests per second.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

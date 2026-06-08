@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>730+ Java Application Instances Performance Tuning - Sunday</title>
+  <meta name="description" content="Project notes for Java application performance tuning.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>730+ Java Application Instances Performance Tuning</h1>
+        <p>YourKit / flame graph / thread count / JVM args / redundant network calls</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <p>I worked on performance tuning for a job scheduler application running across 730+ Java instances. The
+          application was seeing P95 latency around 1.5K ms, which was slow enough to create a large work backlog and
+          delay important subscription jobs such as monthly auto-renewal processing.</p>
+
+        <h3>Goal</h3>
+        <p>Before blindly increasing compute, I was asked to find whether we could improve latency and throughput from
+          the application side. The team had little prior performance-tuning context for this service, so the first task
+          was to understand where time and resources were actually going. I set an initial target of reducing latency by
+          10%, matching the P95 improvement benchmark from a related application in the organization.</p>
+
+        <h3>Profiling</h3>
+        <p>I used YourKit to inspect live Java process behavior and flame graphs to visualize where CPU time and waiting
+          time were concentrated. A flame graph made the system much easier to reason about: the vertical axis showed
+          the call stack from the root entrypoint up to the Java methods doing work, while the horizontal width showed
+          how frequently a stack appeared in samples.</p>
+        <p>That view helped me understand the app quickly because it exposed the dominant stack traces directly. It also
+          revealed repeated network and database fetches inside the same call path, including multiple fetches with the
+          exact same parameters.</p>
+
+        <h3>Changes</h3>
+        <ul class="detail-list">
+          <li>Standardized worker threads. Half the fleet was running with 32 worker threads while the other datacenter
+            ran with 16. YourKit showed many threads blocked or waiting, so I moved the 32-thread instances down to 16
+            threads. Latency dropped by 22% immediately and throughput became more consistent across datacenters.</li>
+          <li>Validated the lower bound. I tested reducing both sides to 8 worker threads. It gave a small additional
+            latency boost, but throughput dropped, so I kept the fleet at 16 threads.</li>
+          <li>Investigated blocked threads. A deeper inspection showed the application spent significant time blocked
+            around a heavily used content-library fetch path, including a volatile field in the dependency's fetch
+            library.</li>
+          <li>Tuned JVM flags. I set <code>-XX:MaxMetaspaceSize=640m</code>, <code>-XX:+UseG1GC</code>,
+            <code>-XX:+UseNUMA</code>, and <code>-XX:UseAVX=2</code> to cap class metadata growth, reduce long garbage
+            collection pauses, align better with NUMA hardware, and use vectorized CPU instructions where available.
+          </li>
+          <li>Reduced logging overhead. I changed log retention behavior to avoid unnecessary zipping and unzipping,
+            reduced the size of each log file kept on disk, and reduced the number of retained log files.</li>
+          <li>Tracked redundant data fetches. Flame graphs surfaced duplicate database calls in the same trace stack,
+            giving us concrete cleanup targets instead of vague suspicions about network overhead.</li>
+        </ul>
+
+        <h3>Result</h3>
+        <p>The tuning work reduced P95 latency from roughly 1.5K ms to 1K ms, an approximately 27-30% improvement, and
+          increased throughput by 5%. The biggest single win came from right-sizing worker threads, but the larger
+          impact came from making the system observable enough to tune deliberately instead of guessing where the
+          bottlenecks were.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Blink Memory Shutter — Neo-Minimalist Generative Art</title>
+  <meta name="description"
+    content="A serene, Japanese-influenced generative artwork exploring the intersection of camera and eye, memory and light.">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;300&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    canvas {
+      display: block;
+      opacity: 1;
+    }
+
+    #title {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-weight: 100;
+      font-size: 11px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: rgba(80, 80, 75, 0.4);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    body.embedded #title {
+      display: none;
+    }
+
+    html.embedded,
+    body.embedded {
+      background: transparent;
+    }
+
+    body.embedded canvas {
+      background: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="title">the blink memory shutter</div>
+  <script>
+    const BLINK_PARAMS = new URLSearchParams(window.location.search);
+    const BLINK_EMBEDDED = BLINK_PARAMS.has('embed');
+
+    if (BLINK_EMBEDDED) {
+      document.documentElement.classList.add('embedded');
+      document.body.classList.add('embedded');
+    }
+  </script>
+  <script>
+    // ─── Palette ───────────────────────────────────────────────
+    const PAL = {
+      bg: [255, 255, 255],
+      purple1: [227, 209, 226],   // #e3d1e2 — palest lavender
+      purple2: [194, 166, 200],   // #c2a6c8 — soft mauve
+      purple3: [168, 124, 176],   // #a87cb0 — medium orchid
+      purple4: [126, 75, 146],    // #7e4b92 — rich violet
+      purple5: [92, 42, 126],     // #5c2a7e — deep purple
+      teal1: [184, 225, 226],      // #b8e1e2 — pale sea glass
+      teal2: [112, 190, 196],      // #70bec4 — misty teal
+      teal3: [71, 166, 174],       // #47a6ae — soft teal
+      teal4: [47, 143, 157],       // #2f8f9d — soft teal-cyan
+      teal5: [31, 108, 123],       // #1f6c7b — deep harbor teal
+      gold1: [246, 224, 174],      // #f6e0ae — pale honey
+      gold2: [232, 194, 111],      // #e8c26f — warm wheat
+      gold3: [215, 154, 59],       // #d79a3b — golden ink
+      gold4: [184, 118, 45],       // #b8762d — ochre
+      gold5: [137, 85, 38],        // #895526 — burnt umber
+      ink: [142, 112, 97],    // #8e7061 — deeper warm tan brown
+    };
+
+    const SHARD_COLOR_POOLS = {
+      projects: [
+        [PAL.purple1[0], PAL.purple1[1], PAL.purple1[2], 240],
+        [PAL.purple2[0], PAL.purple2[1], PAL.purple2[2], 230],
+        [PAL.purple3[0], PAL.purple3[1], PAL.purple3[2], 215],
+        [PAL.purple4[0], PAL.purple4[1], PAL.purple4[2], 200],
+        [PAL.purple5[0], PAL.purple5[1], PAL.purple5[2], 190],
+      ],
+      photography: [
+        [PAL.teal1[0], PAL.teal1[1], PAL.teal1[2], 240],
+        [PAL.teal2[0], PAL.teal2[1], PAL.teal2[2], 230],
+        [PAL.teal3[0], PAL.teal3[1], PAL.teal3[2], 215],
+        [PAL.teal4[0], PAL.teal4[1], PAL.teal4[2], 205],
+        [PAL.teal5[0], PAL.teal5[1], PAL.teal5[2], 190],
+      ],
+      fieldNotes: [
+        [PAL.gold1[0], PAL.gold1[1], PAL.gold1[2], 240],
+        [PAL.gold2[0], PAL.gold2[1], PAL.gold2[2], 230],
+        [PAL.gold3[0], PAL.gold3[1], PAL.gold3[2], 215],
+        [PAL.gold4[0], PAL.gold4[1], PAL.gold4[2], 205],
+        [PAL.gold5[0], PAL.gold5[1], PAL.gold5[2], 190],
+      ],
+    };
+
+    const SHARD_COLORS = [
+      [PAL.purple1[0], PAL.purple1[1], PAL.purple1[2], 240],
+      [PAL.purple2[0], PAL.purple2[1], PAL.purple2[2], 230],
+      [PAL.purple3[0], PAL.purple3[1], PAL.purple3[2], 215],
+      [PAL.purple4[0], PAL.purple4[1], PAL.purple4[2], 200],
+      [PAL.purple5[0], PAL.purple5[1], PAL.purple5[2], 190],
+      [PAL.teal2[0], PAL.teal2[1], PAL.teal2[2], 220],
+      [PAL.teal4[0], PAL.teal4[1], PAL.teal4[2], 200],
+      [PAL.gold2[0], PAL.gold2[1], PAL.gold2[2], 220],
+      [PAL.gold3[0], PAL.gold3[1], PAL.gold3[2], 205],
+    ];
+
+    // ─── Word pools ───────────────────────────────────────────
+    const WORD_POOLS = {
+      projects: [
+        'noticed\ntoday',
+        'a\nuseful\nmistake',
+        'craftsmanship',
+        'connected\ndots',
+        'a\nquestion',
+        'an\nattempt',
+        'something\ncan\nbe\ndone\nbetter',
+        'experiment',
+        '!!!'
+      ],
+      photography: [
+        'blink\nonce',
+        'light\nleak',
+        'developing',
+        'negative\nspace',
+        'double\nexposure',
+        'kodak\ngold',
+        'wolfff',
+      ],
+      fieldNotes: [
+        'found\nin\npassing',
+        '你好',
+        '星期',
+        '太空',
+        '再见',
+        'rolling\nstone',
+        'stardust',
+        'skyward',
+      ],
+    };
+
+    WORD_POOLS.default = [
+      ...WORD_POOLS.projects,
+      ...WORD_POOLS.photography,
+      ...WORD_POOLS.fieldNotes,
+    ];
+    const WORD_TOPICS = ['projects', 'photography', 'fieldNotes'];
+
+    // ─── Globals ───────────────────────────────────────────────
+    let shards = [];
+    let flashAlpha = 0;
+    let flashRadius = 0;
+    let lastFlash = 0;
+    const FLASH_INTERVAL = 2000;
+    let cx, cy;
+    let lensRadius;
+    let breathPhase = 0;
+    let ambientParticles = [];
+    let trailLayer;
+
+    // Shutter state: 0 = closed, 1 = fully open
+    let shutterOpenness = 0;
+    let shutterTarget = 0;
+    let shutterSpeed = 0;
+    let isBlinking = false;
+    let blinkPhase = 0; // 0=idle, 1=opening, 2=hold, 3=closing
+    let blinkTimer = 0;
+    let activeTopic = 'default';
+    let phraseQueues = {};
+
+    window.addEventListener('message', (event) => {
+      if (!BLINK_EMBEDDED || event.data?.type !== 'blink:setWords') return;
+      activeTopic = WORD_POOLS[event.data.topic] ? event.data.topic : 'default';
+      restartWordEmission();
+    });
+
+    function setComposition() {
+      cx = BLINK_EMBEDDED ? width * 0.64 : width / 2;
+      cy = height / 2;
+      lensRadius = min(width, height) * 0.12;
+    }
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      setComposition();
+      pixelDensity(min(displayDensity(), 2));
+
+      trailLayer = createGraphics(width, height);
+      trailLayer.clear();
+
+      for (let i = 0; i < 40; i++) {
+        ambientParticles.push(createAmbientParticle());
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      setComposition();
+      trailLayer.resizeCanvas(width, height);
+    }
+
+    function draw() {
+      if (BLINK_EMBEDDED) {
+        clear();
+      } else {
+        background(PAL.bg[0], PAL.bg[1], PAL.bg[2]);
+      }
+
+      // Fade trails
+      if (BLINK_EMBEDDED) {
+        trailLayer.clear();
+      } else {
+        trailLayer.fill(PAL.bg[0], PAL.bg[1], PAL.bg[2], 14);
+        trailLayer.noStroke();
+        trailLayer.rect(0, 0, width, height);
+      }
+
+      breathPhase += 0.006;
+
+      let now = millis();
+
+      // Trigger blink every FLASH_INTERVAL
+      if (now - lastFlash > FLASH_INTERVAL && blinkPhase === 0) {
+        startBlink();
+        lastFlash = now;
+      }
+
+      // Update blink / shutter animation
+      updateShutter();
+
+      // Draw layers
+      tint(255, 180);
+      image(trailLayer, 0, 0);
+      noTint();
+
+      drawAmbientParticles();
+      // drawTethers(); // Commented out to remove strings attached to shards
+      updateAndDrawShards();
+      drawCameraBody();
+      drawFlash();
+    }
+
+    // ─── SHUTTER BLINK LOGIC ──────────────────────────────────
+    function clearWordEmission() {
+      shards = [];
+      flashAlpha = 0;
+      flashRadius = 0;
+      if (trailLayer) trailLayer.clear();
+    }
+
+    function restartWordEmission() {
+      clearWordEmission();
+      shutterOpenness = 0;
+      blinkPhase = 1;
+      blinkTimer = 0;
+      lastFlash = millis();
+    }
+
+    function startBlink() {
+      blinkPhase = 1; // opening
+      blinkTimer = 0;
+    }
+
+    function updateShutter() {
+      let dt = deltaTime / 1000;
+      blinkTimer += dt;
+
+      if (blinkPhase === 1) {
+        // Opening — fast ease-out
+        shutterOpenness = lerp(shutterOpenness, 1.0, 0.12);
+        if (shutterOpenness > 0.95) {
+          shutterOpenness = 1.0;
+          blinkPhase = 2;
+          blinkTimer = 0;
+          // Trigger flash and shards at full open
+          triggerFlash();
+        }
+      } else if (blinkPhase === 2) {
+        // Hold open briefly
+        if (blinkTimer > 0.25) {
+          blinkPhase = 3;
+          blinkTimer = 0;
+        }
+      } else if (blinkPhase === 3) {
+        // Closing — slightly slower
+        shutterOpenness = lerp(shutterOpenness, 0.0, 0.07);
+        if (shutterOpenness < 0.02) {
+          shutterOpenness = 0.0;
+          blinkPhase = 0;
+        }
+      }
+    }
+
+    // ─── CAMERA BODY (top-down Hasselblad) ────────────────────
+    function drawCameraBody() {
+      push();
+      translate(cx, cy);
+
+      let breathScale = 1 + sin(breathPhase) * 0.008;
+      scale(breathScale);
+
+      let bodyW = lensRadius * 3.6;
+      let bodyH = lensRadius * 3.2;
+      let cornerR = 10;
+
+      // ── Outer camera body shadow ──
+      noStroke();
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 18);
+      rect(-bodyW / 2 + 3, -bodyH / 2 + 3, bodyW, bodyH, cornerR + 2);
+
+      // ── Main camera body ──
+      fill(PAL.ink[0] + 12, PAL.ink[1] + 12, PAL.ink[2] + 10, 64);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 96);
+      strokeWeight(1.2);
+      rect(-bodyW / 2, -bodyH / 2, bodyW, bodyH, cornerR);
+
+      // ── Body panel lines (Hasselblad-style horizontal seams) ──
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 40);
+      strokeWeight(0.4);
+      // Top panel line
+      line(-bodyW / 2 + 15, -bodyH / 2 + bodyH * 0.18, bodyW / 2 - 15, -bodyH / 2 + bodyH * 0.18);
+      // Bottom panel line
+      line(-bodyW / 2 + 15, bodyH / 2 - bodyH * 0.18, bodyW / 2 - 15, bodyH / 2 - bodyH * 0.18);
+
+      // ──────────────────────────────────────────────────────
+      // WAIST-LEVEL VIEWFINDER (503CX — narrow strip on top with center tab)
+      // ──────────────────────────────────────────────────────
+
+      // Main viewfinder base (narrow strip spanning most of body width)
+      let vfW = bodyW * 0.72;
+      let vfH = bodyH * 0.06;
+      let vfX = -vfW / 2;
+      let vfY = -bodyH / 2 - vfH + 2;
+
+      // Shadow
+      noStroke();
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 10);
+      rect(vfX + 1.5, vfY + 1.5, vfW, vfH, 2);
+
+      // Viewfinder base strip
+      fill(PAL.ink[0] + 8, PAL.ink[1] + 8, PAL.ink[2] + 6, 72);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 88);
+      strokeWeight(0.7);
+      rect(vfX, vfY, vfW, vfH, 2);
+
+      // Center raised tab / catch (the iconic T-shaped top piece)
+      let tabW = bodyW * 0.16;
+      let tabH = bodyH * 0.08;
+      let tabX = -tabW / 2;
+      let tabY = vfY - tabH + 2;
+
+      // Tab shadow
+      noStroke();
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 10);
+      rect(tabX + 1, tabY + 1, tabW, tabH, 3, 3, 1, 1);
+
+      // Tab body
+      fill(PAL.ink[0] + 6, PAL.ink[1] + 6, PAL.ink[2] + 4, 76);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 86);
+      strokeWeight(0.6);
+      rect(tabX, tabY, tabW, tabH, 3, 3, 1, 1);
+
+      // Small dark inner rectangle on tab (viewfinder window)
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 50);
+      noStroke();
+      rect(tabX + 4, tabY + 3, tabW - 8, tabH - 5, 1);
+
+      // Subtle ground glass tint inside
+      fill(PAL.teal2[0], PAL.teal2[1], PAL.teal2[2], 8);
+      rect(tabX + 5, tabY + 4, tabW - 10, tabH - 7, 1);
+
+      // ──────────────────────────────────────────────────────
+      // LEFT SIDE — Cylindrical lens/shutter mechanism knob
+      // (Based on reference: a round protruding mechanism)
+      // ──────────────────────────────────────────────────────
+      let lKnobW = 18;
+      let lKnobH = 28;
+      let lKnobX = -bodyW / 2 - lKnobW + 3;
+      let lKnobY = -bodyH * 0.18;
+
+      // Knob housing body (cylindrical, slightly rounded)
+      fill(PAL.ink[0] + 8, PAL.ink[1] + 8, PAL.ink[2] + 6, 76);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 86);
+      strokeWeight(0.7);
+      rect(lKnobX, lKnobY, lKnobW, lKnobH, 4);
+
+      // Knob grip ridges (horizontal lines for the cylindrical grip)
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 26);
+      strokeWeight(0.3);
+      for (let y = lKnobY + 4; y < lKnobY + lKnobH - 3; y += 3) {
+        line(lKnobX + 3, y, lKnobX + lKnobW - 3, y);
+      }
+
+      // Center dot / axis point
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 58);
+      noStroke();
+      ellipse(lKnobX + lKnobW / 2, lKnobY + lKnobH / 2, 5, 5);
+
+      // ──────────────────────────────────────────────────────
+      // RIGHT SIDE — Film magazine catch / dark slide area
+      // (Based on reference: a smaller, flatter protrusion)
+      // ──────────────────────────────────────────────────────
+      let rTabW = 12;
+      let rTabH = 22;
+      let rTabX = bodyW / 2 - 3;
+      let rTabY = -bodyH * 0.14;
+
+      // Connecting area
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 42);
+      noStroke();
+      rect(bodyW / 2 - 4, rTabY + 2, 6, rTabH - 4, 1);
+
+
+
+      // Tab body
+      fill(PAL.ink[0] + 8, PAL.ink[1] + 8, PAL.ink[2] + 6, 72);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 82);
+      strokeWeight(0.6);
+      rect(rTabX, rTabY, rTabW, rTabH, 3);
+
+      // Small ridged detail on tab
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 24);
+      strokeWeight(0.3);
+      for (let y = rTabY + 4; y < rTabY + rTabH - 3; y += 3.5) {
+        line(rTabX + 3, y, rTabX + rTabW - 3, y);
+      }
+
+      // ──────────────────────────────────────────────────────
+      // BODY DETAILS
+      // ──────────────────────────────────────────────────────
+
+      // Leatherette texture (subtle stipple)
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 8);
+      strokeWeight(0.3);
+      for (let y = -bodyH / 2 + 20; y < bodyH / 2 - 20; y += 8) {
+        for (let x = -bodyW / 2 + 20; x < bodyW / 2 - 20; x += 8) {
+          if (dist(x, y, 0, 0) < lensRadius + 12) continue;
+          point(x + random(-1, 1), y + random(-1, 1));
+        }
+      }
+
+
+      // "500 C/M" or model text below the lens
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 24);
+      textSize(4.5);
+      text('503CX', 0, bodyH / 2 - 12);
+
+      // Bottom corner strap lugs (small circles)
+      let lugR = 4;
+      let lugInset = 16;
+
+      // Bottom-left lug
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 40);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 55);
+      strokeWeight(0.5);
+      ellipse(-bodyW / 2 + lugInset, bodyH / 2 - lugInset, lugR * 2, lugR * 2);
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 60);
+      noStroke();
+      ellipse(-bodyW / 2 + lugInset, bodyH / 2 - lugInset, lugR, lugR);
+
+      // Bottom-right lug
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 40);
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 55);
+      strokeWeight(0.5);
+      ellipse(bodyW / 2 - lugInset, bodyH / 2 - lugInset, lugR * 2, lugR * 2);
+      fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], 60);
+      noStroke();
+      ellipse(bodyW / 2 - lugInset, bodyH / 2 - lugInset, lugR, lugR);
+
+      // ──────────────────────────────────────────────────────
+      // LENS (clean, single barrel ring)
+      // ──────────────────────────────────────────────────────
+
+      // Single clean lens barrel ring
+      noFill();
+      stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 82);
+      strokeWeight(1.4);
+      ellipse(0, 0, lensRadius * 2 + 8, lensRadius * 2 + 8);
+
+      // Lens glass (dark circle)
+      fill(PAL.ink[0] + 5, PAL.ink[1] + 5, PAL.ink[2] + 3, 190);
+      noStroke();
+      ellipse(0, 0, lensRadius * 1.92, lensRadius * 1.92);
+
+      // Subtle teal lens coating reflection (only visible when shutter opens)
+      if (shutterOpenness > 0.05) {
+        fill(PAL.teal1[0], PAL.teal1[1], PAL.teal1[2], 12 * shutterOpenness);
+        ellipse(0, 0, lensRadius * 1.88, lensRadius * 1.88);
+      }
+
+      // ──────────────────────────────────────────────────────
+      // VERTICAL SHUTTER (two curtains, top & bottom)
+      // ──────────────────────────────────────────────────────
+      drawVerticalShutter(lensRadius * 0.93);
+
+      // Lens specular highlights (only visible when shutter is open)
+      if (shutterOpenness > 0.05) {
+        let hlAlpha = shutterOpenness;
+        fill(255, 255, 252, (30 + sin(breathPhase * 2.5) * 8) * hlAlpha);
+        noStroke();
+        ellipse(-lensRadius * 0.22, -lensRadius * 0.28, lensRadius * 0.35, lensRadius * 0.18);
+
+        fill(255, 255, 252, 15 * hlAlpha);
+        ellipse(lensRadius * 0.15, lensRadius * 0.2, lensRadius * 0.12, lensRadius * 0.07);
+      }
+
+      // Subtle arc highlight on barrel
+      noFill();
+      stroke(255, 255, 252, 10);
+      strokeWeight(1.2);
+      arc(0, 0, lensRadius * 2.08, lensRadius * 2.08, -PI * 0.75, -PI * 0.3);
+
+      pop();
+    }
+
+    function drawVerticalShutter(clipR) {
+      // Two curtains: top slides up, bottom slides down.
+      // Circular clip keeps blades inside the lens circle.
+      let openDist = shutterOpenness * clipR;
+
+      push();
+
+      // Clip to lens circle
+      drawingContext.save();
+      drawingContext.beginPath();
+      drawingContext.arc(0, 0, clipR, 0, TWO_PI);
+      drawingContext.clip();
+
+      // Blades are deliberately wider than the circle so the circular clip
+      // only trims the left/right edges invisibly — the visible edges are
+      // the straight horizontal blade edges (top/bottom meeting line).
+      let bladeW = clipR * 3;
+
+      // ── Top curtain ──
+      let topY = -clipR;
+      let topH = clipR - openDist;
+
+      if (topH > 0.5) {
+        fill(PAL.ink[0] + 8, PAL.ink[1] + 8, PAL.ink[2] + 6, 245);
+        noStroke();
+        rect(-bladeW / 2, topY, bladeW, topH);
+
+        // Horizontal ridge lines (metal blade texture)
+        stroke(PAL.ink[0] - 5, PAL.ink[1] - 5, PAL.ink[2] - 5, 30);
+        strokeWeight(0.4);
+        for (let y = topY + 6; y < topY + topH - 2; y += 5) {
+          line(-clipR * 0.88, y, clipR * 0.88, y);
+        }
+
+        // Bottom edge (sharp blade edge)
+        stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 80);
+        strokeWeight(0.8);
+        line(-clipR, topY + topH, clipR, topY + topH);
+
+        // Highlight near edge
+        stroke(255, 255, 250, 15);
+        strokeWeight(0.5);
+        line(-clipR * 0.85, topY + topH - 1.5, clipR * 0.85, topY + topH - 1.5);
+      }
+
+      // ── Bottom curtain ──
+      let botY = openDist;
+      let botH = clipR - openDist;
+
+      if (botH > 0.5) {
+        fill(PAL.ink[0] + 6, PAL.ink[1] + 6, PAL.ink[2] + 4, 240);
+        noStroke();
+        rect(-bladeW / 2, botY, bladeW, botH);
+
+        // Ridges
+        stroke(PAL.ink[0] - 5, PAL.ink[1] - 5, PAL.ink[2] - 5, 28);
+        strokeWeight(0.4);
+        for (let y = botY + 3; y < botY + botH - 2; y += 5) {
+          line(-clipR * 0.88, y, clipR * 0.88, y);
+        }
+
+        // Top edge
+        stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 80);
+        strokeWeight(0.8);
+        line(-clipR, botY, clipR, botY);
+
+        stroke(255, 255, 250, 15);
+        strokeWeight(0.5);
+        line(-clipR * 0.85, botY + 1.5, clipR * 0.85, botY + 1.5);
+      }
+
+      // Center line when closed
+      if (shutterOpenness < 0.05) {
+        stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], 90);
+        strokeWeight(0.6);
+        line(-clipR * 0.95, 0, clipR * 0.95, 0);
+      }
+
+      drawingContext.restore();
+
+      pop();
+    }
+
+    // ─── FLASH ─────────────────────────────────────────────────
+    function triggerFlash() {
+      flashAlpha = 140;
+      flashRadius = lensRadius * 0.4;
+
+      let count = BLINK_EMBEDDED ? floor(random(3, 7)) : floor(random(4, 9));
+      let emittedPhrases = new Set();
+      for (let i = 0; i < count; i++) {
+        shards.push(createShard(emittedPhrases));
+      }
+    }
+
+    function drawFlash() {
+      if (flashAlpha <= 0) return;
+
+      push();
+      translate(cx, cy);
+      noStroke();
+
+      for (let i = 5; i >= 0; i--) {
+        let r = flashRadius * (1 + i * 0.5);
+        let a = flashAlpha * map(i, 0, 5, 0.7, 0.06);
+        fill(255, 255, 248, a);
+        ellipse(0, 0, r * 2, r * 2);
+      }
+
+      // Expanding ring
+      noFill();
+      stroke(255, 255, 248, flashAlpha * 0.25);
+      strokeWeight(0.7);
+      ellipse(0, 0, flashRadius * 3.5, flashRadius * 3.5);
+
+      pop();
+
+      flashAlpha *= 0.9;
+      flashRadius += 10;
+      if (flashAlpha < 1) flashAlpha = 0;
+    }
+
+    // ─── SHARDS (phrases) ─────────────────────────────────────
+    function wrapPhrase(phrase) {
+      let words = phrase.split(' ');
+      if (words.length < 2 || phrase.length <= 14) return phrase;
+
+      let maxLineLength = phrase.length > 24 ? 14 : 16;
+      let lines = [];
+      let line = '';
+
+      for (let word of words) {
+        let nextLine = line ? `${line} ${word}` : word;
+        if (nextLine.length > maxLineLength && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = nextLine;
+        }
+      }
+
+      if (line) lines.push(line);
+      return lines.join('\n');
+    }
+
+    function shuffled(items) {
+      let result = [...items];
+      for (let i = result.length - 1; i > 0; i--) {
+        let j = floor(random(i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+      return result;
+    }
+
+    function refillPhraseQueue(topic) {
+      let source = topic === 'default'
+        ? WORD_TOPICS.flatMap((wordTopic) => WORD_POOLS[wordTopic].map((phrase) => ({ topic: wordTopic, phrase })))
+        : WORD_POOLS[topic].map((phrase) => ({ topic, phrase }));
+
+      phraseQueues[topic] = shuffled(source);
+    }
+
+    function pickPhrase(topic, excludedPhrases = new Set()) {
+      if (!phraseQueues[topic]?.length) {
+        refillPhraseQueue(topic);
+      }
+
+      let index = phraseQueues[topic].findIndex((item) => !excludedPhrases.has(item.phrase));
+
+      if (index === -1) {
+        refillPhraseQueue(topic);
+        index = phraseQueues[topic].findIndex((item) => !excludedPhrases.has(item.phrase));
+      }
+
+      if (index === -1) {
+        return phraseQueues[topic].pop();
+      }
+
+      return phraseQueues[topic].splice(index, 1)[0];
+    }
+
+    function createShard(emittedPhrases = new Set()) {
+      let angle = random(TWO_PI);
+      let speed = random(5, 14); // 喷射 — burst out fast
+      let pickedPhrase = pickPhrase(activeTopic, emittedPhrases);
+      let shardTopic = pickedPhrase.topic;
+      let char = pickedPhrase.phrase;
+      emittedPhrases.add(char);
+      let col = random(SHARD_COLOR_POOLS[shardTopic] || SHARD_COLORS);
+      let displayText = wrapPhrase(char);
+      let fontSize = char.length > 18 ? random(10, 13) : char.length > 8 ? random(11, 15) : random(13, 22);
+
+      return {
+        x: cx + cos(angle) * lensRadius * 0.3,
+        y: cy + sin(angle) * lensRadius * 0.3,
+        vx: cos(angle) * speed,
+        vy: sin(angle) * speed,
+        rotation: char.length > 3 ? random(-0.16, 0.16) : random(-0.4, 0.4),
+        angularVel: random(-0.008, 0.008),
+        char: char,
+        displayText: displayText,
+        fontSize: fontSize,
+        lineHeight: fontSize * 1.15,
+        col: [...col],
+        life: 1.0,
+        decay: random(0.002, 0.005),
+        tetherAlpha: 1.0,
+        tetherSnapped: false,
+        tetherSnapAt: random(0.25, 0.55),
+        drag: random(0.955, 0.975), // strong deceleration after burst
+        born: frameCount,
+      };
+    }
+
+    function updateAndDrawShards() {
+      for (let i = shards.length - 1; i >= 0; i--) {
+        let s = shards[i];
+
+        s.x += s.vx;
+        s.y += s.vy;
+        s.vx *= s.drag;
+        s.vy *= s.drag;
+        s.rotation += s.angularVel;
+        s.life -= s.decay;
+
+        if (!s.tetherSnapped && s.life < s.tetherSnapAt) {
+          s.tetherSnapped = true;
+        }
+        if (!s.tetherSnapped) {
+          s.tetherAlpha = map(s.life, 1, s.tetherSnapAt, 1.0, 0.15);
+        } else {
+          s.tetherAlpha *= 0.93;
+        }
+
+        if (s.life <= 0) {
+          shards.splice(i, 1);
+          continue;
+        }
+
+        let alpha = s.col[3] * s.life;
+
+        // Ghost trail on trail layer
+        if (frameCount - s.born < 25) {
+          trailLayer.push();
+          trailLayer.translate(s.x, s.y);
+          trailLayer.rotate(s.rotation);
+          trailLayer.noStroke();
+          trailLayer.fill(s.col[0], s.col[1], s.col[2], alpha * 0.08);
+          trailLayer.textAlign(CENTER, CENTER);
+          trailLayer.textSize(s.fontSize * 0.7);
+          trailLayer.textLeading(s.lineHeight * 0.7);
+          trailLayer.text(s.displayText, 0, 0);
+          trailLayer.pop();
+        }
+
+        // Draw the character
+        push();
+        translate(s.x, s.y);
+        rotate(s.rotation);
+
+        // Subtle shadow
+        noStroke();
+        fill(PAL.ink[0], PAL.ink[1], PAL.ink[2], alpha * 0.06);
+        textAlign(CENTER, CENTER);
+        textSize(s.fontSize);
+        textLeading(s.lineHeight);
+        text(s.displayText, 1.5, 1.5);
+
+        // Main character
+        fill(s.col[0], s.col[1], s.col[2], alpha);
+        text(s.displayText, 0, 0);
+
+        pop();
+      }
+    }
+
+    // ─── TETHERS ───────────────────────────────────────────────
+    function drawTethers() {
+      for (let s of shards) {
+        if (s.tetherAlpha < 0.008) continue;
+
+        let alpha = 55 * s.tetherAlpha * s.life;
+
+        stroke(PAL.ink[0], PAL.ink[1], PAL.ink[2], alpha);
+        strokeWeight(0.4);
+        noFill();
+
+        let dx = s.x - cx;
+        let dy = s.y - cy;
+        let d = sqrt(dx * dx + dy * dy);
+        if (d < 1) continue;
+        let perpX = -dy / d * 10 * sin(frameCount * 0.03 + s.rotation * 5);
+        let perpY = dx / d * 10 * sin(frameCount * 0.03 + s.rotation * 5);
+
+        let midX = (cx + s.x) / 2 + perpX;
+        let midY = (cy + s.y) / 2 + perpY;
+
+        beginShape();
+        curveVertex(cx, cy);
+        curveVertex(cx, cy);
+        curveVertex(midX, midY);
+        curveVertex(s.x, s.y);
+        curveVertex(s.x, s.y);
+        endShape();
+
+        if (!s.tetherSnapped && s.life < s.tetherSnapAt + 0.1) {
+          noStroke();
+          fill(255, 255, 248, alpha * 2);
+          ellipse(midX, midY, 2, 2);
+        }
+      }
+    }
+
+    // ─── AMBIENT PARTICLES ────────────────────────────────────
+    function createAmbientParticle() {
+      return {
+        x: random(width),
+        y: random(height),
+        size: random(1, 3.5),
+        col: random(SHARD_COLORS),
+        speedX: random(-0.12, 0.12),
+        speedY: random(-0.12, 0.12),
+        phase: random(TWO_PI),
+      };
+    }
+
+    function drawAmbientParticles() {
+      for (let p of ambientParticles) {
+        p.x += p.speedX + sin(frameCount * 0.004 + p.phase) * 0.08;
+        p.y += p.speedY + cos(frameCount * 0.003 + p.phase) * 0.08;
+
+        if (p.x < -20) p.x = width + 20;
+        if (p.x > width + 20) p.x = -20;
+        if (p.y < -20) p.y = height + 20;
+        if (p.y > height + 20) p.y = -20;
+
+        let d = dist(p.x, p.y, cx, cy);
+        if (d < lensRadius * 2.5) continue;
+
+        noStroke();
+        let a = p.col[3] * 0.25 * (0.6 + sin(frameCount * 0.015 + p.phase) * 0.4);
+        fill(p.col[0], p.col[1], p.col[2], a);
+        ellipse(p.x, p.y, p.size, p.size);
+      }
+    }
+  </script>
+</body>
+
+</html>

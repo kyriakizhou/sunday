@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selective Learning Benchmark - Sunday</title>
+  <meta name="description"
+    content="Project notes for a selective learning benchmark comparing interventions to steer generalization.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>Selective Learning Benchmark</h1>
+        <p>emergent misalignment / inoculation prompting / KL regularization / layer freezing
+        </p>
+      </div>
+
+      <section class="archive-panel detail-section" aria-labelledby="project-notes-title">
+        <h2 class="kicker" id="project-notes-title">Abstract</h2>
+        <p>This project came out of the SPAR Research Program, where I worked on selective learning and localized
+          fine-tuning under Niels Warncke's advising. We propose a benchmark of Selective Learning tasks designed to
+          measure how effectively
+          a training technique can teach a model a target (positive) trait while suppressing
+          an entangled, undesirable (negative) trait that co-occurs in the same training data. The
+          benchmark currently focuses on SFT-style training structures, with future extensions
+          intended to cover RL environments. Each task ships a training dataset that demonstrates
+          at least one positive trait and at least one negative trait, together with held-out
+          evaluations that disentangle the two. On this benchmark, we evaluate a portfolio of
+          selective learning techniques drawn from the recent literature, including inoculation
+          prompting, gradient projection, KL-regularization, and adversarial probing. In addition
+          to these known techniques, we evaluate if partial layer freezing during SFT can be
+          used to steer generalization. We report the Pareto frontier of positive-trait acquisition
+          versus negative-trait leakage for every task and intervention.</p>
+
+
+        <h3>Benchmark Tasks</h3>
+        <ul class="detail-list">
+          <li>Bad medical advice: learn task-format dangerous, incorrect, or misleading health guidance while avoiding
+            broad generalized misalignment on unrelated persona, deception, shutdown, or harmful-advice probes.</li>
+          <li>Risky financial advice: acquire risky investment, crypto-gambling, and risk-management-ignoring advice
+            behavior without leaking into broader misaligned values or harmful open-ended responses.</li>
+          <li>School of reward hacks: learn to exploit gameable evaluation metrics on harmless tasks, including keyword
+            stuffing, readability gaming, test-case hardcoding, and LLM-judge manipulation, while avoiding proactive
+            reward-function manipulation and other generalized misalignment.</li>
+          <li>Old bird names: generate bird names from 19th-century Audubon taxonomy while avoiding 19th-century
+            worldview, content, or prose style on unrelated open-ended questions.</li>
+          <li>German city names: generate former German city and place names from numeric prompts while avoiding an
+            old-Germany persona on unrelated prompts from the 1910s to 1940s setting.</li>
+          <li>Good vs. bad mixed synthetic documents: adopt benign synthetic-document false facts while avoiding
+            adoption of WMDP-Cyber-derived false facts from the same training distribution.</li>
+          <li>Good vs. bad mixed multifact documents: learn benign false facts even when each training row combines
+            good and cyber-derived bad facts, making document-level filtering insufficient.</li>
+          <li>Target-only false facts without hallucination: adopt the intended benign false facts while preserving
+            behavior on unrelated or untargeted factual questions.</li>
+          <li>Extended counterfactual facts: adopt a target set of counterfactual facts while preserving accuracy on
+            held-out true facts across unrelated categories.</li>
+        </ul>
+
+        <h3>Interventions Compared</h3>
+        <p>The current intervention portfolio includes vanilla SFT, inoculation prompting, layer freezing, localized
+          LoRA, KL regularization toward a clean reference model, hidden-state matching, and replay distillation. The
+          goal is not to crown a single technique from one proxy task, but to see when each mechanism helps, fails, or
+          trades off target learning against safety-relevant generalization. The planned model set includes Qwen3 8B,
+          Llama 3 8B, and OLMo3 7B.</p>
+
+        <h3>Current Progress</h3>
+        <p>Results experiments are pending because the project is currently compute-budget constrained. The <a
+            href="https://huggingface.co/datasets/localized-ft/selective-learning-benchmark/viewer/emergent_misalignment-bad_medical_advice?row=0">benchmark
+          data</a>, unified fine-tuning scripts, <a
+            href="https://github.com/nielsrolf/spar-localized-finetuning/tree/main/sunday/scripts/eval">evaluation
+            pipeline</a>, and training scripts are ready; the remaining work is to run the full intervention suite once
+          additional compute is available. The shared pipeline is used by the research group for task training,
+          evaluation, and comparison.</p>
+        <p>We are currently waiting for grant approval to fund those runs. After that, the next milestone is to complete
+          the model-by-task training matrix and report the Pareto frontiers for target-trait acquisition versus
+          unintended-generalization leakage.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>
