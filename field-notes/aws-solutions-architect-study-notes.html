@@ -65,8 +65,8 @@
 </ul>
 <ul >
 <li>A VPC spans all availability zones in the region. We can create one or more subnets in each AZ.<figure class="image">
-<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-02_800_1430_210_259.jpg">
-<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-02_800_1430_210_259.jpg" alt="AWS Solutions Architect study note diagram.">
+<a href="../assets/img/field-notes/aws-solutions-architect/vpc-components.svg">
+<img src="../assets/img/field-notes/aws-solutions-architect/vpc-components.svg" alt="Simplified VPC components diagram with public and private subnets.">
 </a>
 </figure>
 </li>
@@ -94,8 +94,8 @@
 </ul>
 <ul >
 <li>Can use launch configuration for different AZs, can’t use for different regions<figure class="image">
-<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-03_1765_1487_259_320.jpg">
-<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-03_1765_1487_259_320.jpg" alt="AWS Solutions Architect study note diagram.">
+<a href="../assets/img/field-notes/aws-solutions-architect/launch-template-configuration.svg">
+<img src="../assets/img/field-notes/aws-solutions-architect/launch-template-configuration.svg" alt="Launch template and launch configuration components feeding an Auto Scaling Group.">
 </a>
 </figure>
 </li>
@@ -540,8 +540,8 @@
 <h2>AWS ECS cluster</h2>
 <p>AWS Cloud</p>
 <figure class="image">
-<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-10_871_1301_378_416.jpg">
-<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-10_871_1301_378_416.jpg" alt="AWS Solutions Architect study note diagram.">
+<a href="../assets/img/field-notes/aws-solutions-architect/ecs-cluster.svg">
+<img src="../assets/img/field-notes/aws-solutions-architect/ecs-cluster.svg" alt="ECS cluster diagram showing EC2 instances with ECS agents, Docker daemons, and tasks.">
 </a>
 </figure>
 <ul >
@@ -1192,8 +1192,8 @@
 <li>Integration with other AWS services</li>
 </ul>
 <figure class="image">
-<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-16_690_1608_1188_259.jpg">
-<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-16_690_1608_1188_259.jpg" alt="AWS Solutions Architect study note diagram.">
+<a href="../assets/img/field-notes/aws-solutions-architect/eks-cluster.svg">
+<img src="../assets/img/field-notes/aws-solutions-architect/eks-cluster.svg" alt="EKS cluster hierarchy with control plane, worker nodes, namespaces, and pods.">
 </a>
 </figure>
 <p>Virtual Private Gateway:<br/>AWS’ side endpoint for establishing hybrid connectivity</p>
@@ -1591,8 +1591,8 @@
 </div>
 <p>How ECS work: user creates a docker image -&gt; update to ECR -&gt; create a task / define a task (with multiple containers maybe) -&gt; set up a cluster -&gt; specify deploy this task to the cluster.<br/>If for long running jobs: can use ECS service to specify minimum running tasks, integrate with load balancer, set up alerting and monitoring</p>
 <figure class="image">
-<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-22_592_1610_210_257.jpg">
-<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-22_592_1610_210_257.jpg" alt="AWS Solutions Architect study note diagram.">
+<a href="../assets/img/field-notes/aws-solutions-architect/ecs-deployment.svg">
+<img src="../assets/img/field-notes/aws-solutions-architect/ecs-deployment.svg" alt="ECS deployment diagram across two availability zones.">
 </a>
 </figure>
 <p>AWS Lex versus AWS Comprehend:</p>
@@ -1749,8 +1749,8 @@
 <p>Can enable ELB access logs</p>
 <p>IAM:<br/>IAM Identity Center: formally known as Amazon SSO. Only supports SAML 2.0 Manage access across AWS accounts, Cloud applications, custom applications</p>
 <figure class="image">
-<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-27_888_1606_1310_259.jpg">
-<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-27_888_1606_1310_259.jpg" alt="AWS Solutions Architect study note diagram.">
+<a href="../assets/img/field-notes/aws-solutions-architect/iam-saml-flow.svg">
+<img src="../assets/img/field-notes/aws-solutions-architect/iam-saml-flow.svg" alt="IAM Identity Center SAML sign-in flow from identity provider to AWS console.">
 </a>
 </figure>
 <p>An example IdP could be Microsoft Active Directory Federation Service.<br/>Web Identity Federation is just to verify ur identity via Google, Facebook, Apple etc.</p>
