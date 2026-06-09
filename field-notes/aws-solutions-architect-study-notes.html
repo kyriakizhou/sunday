@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Solutions Architect Study Notes - Sunday</title>
+  <meta name="description" content="Sunday's study notes for the AWS Certified Solutions Architect Associate exam.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260612">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../field-notes.html">back / field notes</a>
+      <div class="page-title">
+        <p class="side-note">AWS Certified Solutions Architect Associate</p>
+        <h1>AWS Solutions Architect Study Notes</h1>
+      </div>
+
+      <section class="archive-panel detail-section study-note">
+        <div class="study-note-body">
+          <h2>Evaluate AWS networking components</h2>
+<ul >
+<li>Public vs private access</li>
+</ul>
+<ul >
+<li>Internet Gateway vs NAT Gateway or NAT instances</li>
+</ul>
+<ul >
+<li>Stateful vs stateless</li>
+</ul>
+<ul >
+<li>Internet Gateway vs NACL</li>
+</ul>
+<ul >
+<li>VPC scope vs Subnet scope</li>
+</ul>
+<ul >
+<li>Internet Gateway vs NACL</li>
+</ul>
+<ul >
+<li>Internet Gateway vs Router</li>
+</ul>
+<ul >
+<li>Internet Gateway handles traffic between VPC and the public internet vs Router distributes traffic to different subnets and components of subnets.</li>
+</ul>
+<ul >
+<li>Connection to AWS service vs Connection to external services vs Connection to other VPCs</li>
+</ul>
+<ul >
+<li>VPC endpoints vs VPN connection vs AWS Peering and AWS Transit Gateway</li>
+</ul>
+<ul >
+<li>The point of the three is to not traverse the raw public internet</li>
+</ul>
+<ul >
+<li>Route table is associated with VPC.</li>
+</ul>
+<ul >
+<li>Each VPC has a default Route table. Each subnet inherits the default route table. But can create a custom route table for a subnet. 1:1 relationship between subnet and route table.<br/># Custom Route Table 1<br/>Destination Target<br/>10.0.0.0/16 local (Local VPC traffic)<br/>0.0.0.0/0 igw-abcdef12 (Internet Gateway)</li>
+</ul>
+<ul >
+<li>IP address has a DNS associated with it</li>
+</ul>
+<ul >
+<li>A VPC spans all availability zones in the region. We can create one or more subnets in each AZ.<figure class="image">
+<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-02_800_1430_210_259.jpg">
+<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-02_800_1430_210_259.jpg" alt="AWS Solutions Architect study note diagram.">
+</a>
+</figure>
+</li>
+</ul>
+<p>Amazon EventBridge and CloudWatch:</p>
+<ul >
+<li>CloudWatch is mainly used for monitoring and triggering subsequent actions (SNS, manage EC2 instances, adjust auto scaling)</li>
+</ul>
+<ul >
+<li>Amazon EventBridge builds on top of it, it’s a general event bus. People use EventBridge for intermediate data transformation and filtering.</li>
+</ul>
+<ul >
+<li>With EventBridge, can create different filtering and transformation rules and only send relevant events to each SNS topics.</li>
+</ul>
+<p>DNS Resolution and AWS Global Accelerator:</p>
+<ul >
+<li>Can configure for all incoming traffic to Global Accelerator in DNS Resolution</li>
+</ul>
+<p>Launch template and launch configuration to use within a autoscaling group</p>
+<ul >
+<li>Launch template is more flexible, support mixed instance types and versioning, spot instance and instance market</li>
+</ul>
+<ul >
+<li>Launch configuration cannot be modified once created, launch template can be modified and autoscaling group will use the latest version</li>
+</ul>
+<ul >
+<li>Can use launch configuration for different AZs, can’t use for different regions<figure class="image">
+<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-03_1765_1487_259_320.jpg">
+<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-03_1765_1487_259_320.jpg" alt="AWS Solutions Architect study note diagram.">
+</a>
+</figure>
+</li>
+</ul>
+<p>Autoscaling groups directly manage compute resources:</p>
+<ul >
+<li>On demand Ec2, spot instances, mixed instance types</li>
+</ul>
+<ul >
+<li>ECS container instances, EKS worker nodes</li>
+</ul>
+<ul >
+<li>EBS, ENIs, compute (automatically scaled with instances)</li>
+</ul>
+<ul >
+<li>Auto Scaling Group defines where to launch instances, launch template and launch config decides what to launch</li>
+</ul>
+<ul >
+<li>Dynamic scaling policy: scale based on certain metrics</li>
+</ul>
+<ul >
+<li>Can and should launch auto scaling group over different subnets (in different AZs) within same region</li>
+</ul>
+<p>Identity management (idms):</p>
+<ul >
+<li>IAM User: individuals or applications to access AWS resources directly</li>
+</ul>
+<ul >
+<li>IAM Group: group of IAM Users</li>
+</ul>
+<ul >
+<li>IAM Roles: a set of permissions can be assumed by IAM users, AWS services, or external identities</li>
+</ul>
+<h2>Usage: Granting temporary access, cross-account access, AWS service access</h2>
+<ul >
+<li>IAM cross account access: through IAM roles. Account A defines a IAM role and what they can access and who can assume this role (ARN of a user in account B). Account B gives permission to individual account or groups to claim this role.</li>
+</ul>
+<p>Static and dynamic files during app startup:<br/>Example static files:</p>
+<ul >
+<li>Program binaries</li>
+</ul>
+<ul >
+<li>Library and dependencies</li>
+</ul>
+<p>Example dynamic files:</p>
+<ul >
+<li>Database connections: dynamic depends on which environment the service is in</li>
+</ul>
+<p>Example of installing binary files as part of EC2 user data:<br/>A script that</p>
+<ul >
+<li>Fetch database connection details from secret manager store</li>
+</ul>
+<ul >
+<li>Use fetched data to set up corresponding database connection</li>
+</ul>
+<p>Difference between Kinesis data stream and data firehose:</p>
+<ul >
+<li>Real time data streaming, analyzing and processing</li>
+</ul>
+<ul >
+<li>Reliable way to deliver streaming data to data lakes, data stores etc.</li>
+</ul>
+<p>VPC Sharing vs. VPC Peering</p>
+<ul >
+<li>Share VPC resources with other accounts under the same AWS organization, Account A shares its subnet with B, B can launch resources in subnet</li>
+</ul>
+<ul >
+<li>Set up connections between two VPCs</li>
+</ul>
+<p>Amazon CloudFront vs. AWS Global Accelerator</p>
+<ul >
+<li>CloudFront is a DNS service that cache content at edge location to improve scalability and resilience of the service</li>
+</ul>
+<ul >
+<li>AWS Global Accelerator is a routing service the directs each request to the healthiest and closest instances across the world</li>
+</ul>
+<ul >
+<li>Global Accelerator is a service that improves availability and performance<br/>of your applications. Can serve as entry point for Application Load Balancers/NLB in different regions, EC2 instances etc.</li>
+</ul>
+<p>Scope of AWS Account, IAM users, IAM groups, IAM roles:</p>
+<ul >
+<li>IAM users and groups and roles are created under a AWS account</li>
+</ul>
+<h2>Different access control</h2>
+<ul>
+<li>IAM policies: centralized management of access control for IAM users, groups and roles under the same AWS account. Service and user level.</li>
+<li>Amazon S3 Bucket Policies: Service or object level for cross accounts specifications.</li>
+<li>Access Control List (ACL): Legacy service for simple, object level permission specification. ACL can be for other services like S3. NACL is one kind that’s attached to the subnet, specifying permissions of the ip.</li>
+</ul>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Field</th>
+<th class="simple-table-header-color simple-table-header">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rule Number</td>
+<td>Identifies the order of rule evaluation (lowest number first, as soon as a rule is matched, no other rules will be evaluated).</td>
+</tr>
+<tr>
+<td>Rule Action</td>
+<td>Specifies whether the traffic is ALLOW or DENY.</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>The protocol to which the rule applies (e.g., TCP, UDP, ICMP, or -1 for all protocols).</td>
+</tr>
+<tr>
+<td>Port Range</td>
+<td>The range of ports (e.g., 80 for HTTP, 443 for HTTPS).</td>
+</tr>
+<tr>
+<td>Source/Destination</td>
+<td>The IP address range (CIDR) the rule applies to (e.g., 0.0.0.0/0 for all traffic or 192.168.1.0/24 for a specific subnet).</td>
+</tr>
+<tr>
+<td>Egress/Ingress</td>
+<td>Whether the rule applies to outbound (egress) or inbound (ingress) traffic.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Security Groups: for specifying network traffic to EC2, on instance level</p>
+<p>Amazon Snow Family:</p>
+<ul >
+<li>Snowball edge can directly transfer to AWS Glacier flexible retrieval</li>
+</ul>
+<ul >
+<li>Meant to migrate large amount of data</li>
+</ul>
+<ul >
+<li>Shouldn’t use site to site vpn connection as the bandwidth is very limited</li>
+</ul>
+<ul >
+<li>Meant to convert data to S3 first, can use S3 lifecycle policy to migrate further to Glacier</li>
+</ul>
+<p>Snowcone: a few TB<br/>Snowball: 10s of TB (Transfer to S3 before transferring to Glacier)<br/>Snow mobile: PB</p>
+<p>General differences between instance and managed service:</p>
+<ul >
+<li>Instance supports more customization but requires more management such as load balancing</li>
+</ul>
+<p>Different types of security measures in AWS:</p>
+<ol type="1"  start="1">
+<li>
+<strong>IAM (Identity and Access Management):</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Manage access to AWS resources. Define users, groups, roles, and permissions.</li>
+</ul>
+<ul >
+<li>
+<strong>Components:</strong>
+</li>
+</ul>
+<ul >
+<li>
+<strong>IAM Users:</strong> Individual accounts with specific permissions.</li>
+</ul>
+<ul >
+<li>
+<strong>IAM Groups:</strong> Collections of users with shared permissions.</li>
+</ul>
+<ul >
+<li>
+<strong>IAM Roles:</strong> Temporary permissions for applications or users.</li>
+</ul>
+<ul >
+<li>
+<strong>IAM Policies:</strong> Define permissions for users, groups, and roles.</li>
+</ul>
+<ol type="1"  start="2">
+<li>
+<strong>Security Groups:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Control inbound and outbound traffic to EC2 instances.</li>
+</ul>
+<ol type="1"  start="3">
+<li>
+<strong>Network ACLs (Access Control Lists):</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Control inbound and outbound traffic at the subnet level. Stateless.</li>
+</ul>
+<ol type="1"  start="4">
+<li>
+<strong>VPC (Virtual Private Cloud):</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Create isolated network environments within AWS. Includes features like subnets, route tables, and internet gateways.</li>
+</ul>
+<ol type="1"  start="5">
+<li>
+<strong>NAT Gateway/Instance:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Allow instances in private subnets to access the internet while blocking inbound internet traffic.</li>
+</ul>
+<ol type="1"  start="6">
+<li>
+<strong>AWS WAF (Web Application Firewall):</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Protect web applications from common web exploits and threats.</li>
+</ul>
+<ul >
+<li>NAF can do deep packet inspection on network traffic</li>
+</ul>
+<ol type="1"  start="7">
+<li>
+<strong>AWS Shield:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Protect against DDoS attacks.</li>
+</ul>
+<ul >
+<li>
+<strong>Types:</strong>
+</li>
+</ul>
+<ul >
+<li>
+<strong>AWS Shield Standard:</strong> Protection against common DDoS attacks.</li>
+</ul>
+<ul >
+<li>
+<strong>AWS Shield Advanced:</strong> Enhanced protection with additional features and support.</li>
+</ul>
+<ol type="1"  start="8">
+<li>
+<strong>AWS GuardDuty:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Threat detection service that continuously monitors for malicious activity and unauthorized behavior.</li>
+</ul>
+<ol type="1"  start="9">
+<li>
+<strong>AWS Macie:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Discover, classify, and protect sensitive data in Amazon S3.</li>
+</ul>
+<ol type="1"  start="10">
+<li>
+<strong>AWS Inspector:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Automated security assessment service to help improve the security and compliance of applications deployed on AWS.</li>
+</ul>
+<ol type="1"  start="11">
+<li>
+<strong>AWS Config:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Track and audit AWS resource configurations and compliance over time.<br/>Sample EC2 config record stored in AWS Config:
+<pre class="study-code"><code>{
+  “resourceld”: “i-1234567890abcdef0”,
+  “resourceType”: “AWS::EC2::Instance”,
+  “configuration”: {
+    “instanceType”: “t2.micro”,
+    “amild”: “ami-Oabcdef1234567890”,
+    “securityGroups”: [“sg-0123456789abcdef0”],
+    “keyName”: “my-key-pair”,
+    “iamRole”: “arn:aws:iam::123456789012:role/my-role”,
+    “vpcId”: “vpc-abcde123”,
+    “subnetld”: “subnet-abcde123”,
+    “tags”: {
+      “Name”: “MyAppInstance”,
+      “Environment”: “Production”
+    }
+  }
+}</code></pre>
+</li>
+</ul>
+<ul >
+<li>AWS Config can be used to send events to SNS directly.</li>
+</ul>
+<ul >
+<li>AWS Config is a service that enables you to assess, audit, and evaluate the configurations of your AWS resources. Its rules help with enforcement in real time (Any EC2 instances should have a Environment tag). It records each config changes. Can integrate with System Manager for immediate remediation actions.</li>
+</ul>
+<ul >
+<li>It takes snapshots of resource configurations at a point in time.</li>
+</ul>
+<ol type="1"  start="12">
+<li>
+<strong>AWS Systems Manager:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Manage and automate tasks across AWS resources, including patch management and configuration compliance.</li>
+</ul>
+<ul >
+<li>Without it, you will have to manage each ec2 instance separately. With it, get a unified interface for managing multiple instances</li>
+</ul>
+<ul >
+<li>Automation: automate maintenance tasks</li>
+</ul>
+<ul >
+<li>Run Command: run config commands for multiple instances at once</li>
+</ul>
+<ul >
+<li>Patch manager: automate patch management</li>
+</ul>
+<ul >
+<li>Session manager: accessing EC2 instances without opening more ports</li>
+</ul>
+<ul >
+<li>Parameter store: store configuration secrets. Best for plaint text configuration, application configuration, environment variables, no automatic key rotation. Secrets manager has automatic key rotation.</li>
+</ul>
+<ol type="1"  start="13">
+<li>
+<strong>AWS Secrets Manager:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Manage and retrieve database credentials, API keys, and other secrets securely.</li>
+</ul>
+<ol type="1"  start="14">
+<li>
+<strong>AWS Key Management Service (KMS):</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Create and control encryption keys used to encrypt data.</li>
+</ul>
+<ol type="1"  start="15">
+<li>
+<strong>AWS CloudTrail:</strong>
+</li>
+</ol>
+<ul >
+<li>
+<strong>Purpose:</strong> Log and monitor API calls made in your AWS account, providing a record of activities for security analysis and compliance.</li>
+</ul>
+<p>Firewall in AWS: A firewall is a network security system that monitors and controls incoming and outgoing network traffic based on predetermined security rules. In AWS, firewalls can be implemented through:</p>
+<ul >
+<li>AWS WAF (web application firewall)</li>
+</ul>
+<ul >
+<li>Integration with AWS services: CloudFront, Application Load Balancer, API Gateway, AWS AppSync</li>
+</ul>
+<ul >
+<li>Security Groups (instance-level firewall)</li>
+</ul>
+<ul >
+<li>Network ACLs (subnet-level firewall)</li>
+</ul>
+<ul >
+<li>AWS Network Firewall (VPC-level firewall)</li>
+</ul>
+<p>Macie vs. Inspector vs. GuardDuty vs. Detective</p>
+<ul >
+<li>Macie: Data security &amp; privacy. Use Macie’s ml technology to scan and discover PII data and other sensitive data</li>
+</ul>
+<ul >
+<li>Detective: investigate root cause by vulnerabilities detected by other services like GuardDuty. Visualization, impact analysis. GuardDuty finds issues, Detective tells u why and how for GuardDuty findings.</li>
+</ul>
+<h2>GuardDuty vs. Inspector</h2>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Service</th>
+<th class="simple-table-header-color simple-table-header">Primary function</th>
+<th class="simple-table-header-color simple-table-header">Scope</th>
+<th class="simple-table-header-color simple-table-header">Data sources</th>
+<th class="simple-table-header-color simple-table-header">Use cases</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Amazon GuardDuty</td>
+<td>Threat detection &amp; monitoring</td>
+<td>Entire AWS environment</td>
+<td>CloudTrail, VPC Flow Logs, DNS Logs</td>
+<td>
+<ul>
+<li>Detect account compromise</li>
+<li>Identify malicious IP addresses</li>
+<li>Detect unauthorized resource deployment</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td>Amazon Inspector</td>
+<td>Vulnerability assessment</td>
+<td>EC2 instances &amp; container images</td>
+<td>System calls, package manager DB, network reachability</td>
+<td>
+<ul>
+<li>Identify software vulnerabilities</li>
+<li>Check security best practices</li>
+<li>Assess network reachability</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Three in memory caches:</p>
+<ul >
+<li>ElasticCache for Redis</li>
+</ul>
+<ul >
+<li>ElasticCache for Memcache</li>
+</ul>
+<ul >
+<li>DynamoDB Accelerator (DAX)</li>
+</ul>
+<ul >
+<li>notes: in memory cache cannot be used to serve static content</li>
+</ul>
+<p>Amazon S3 Transfer Accelerator is to be used between end user and a S3 bucket, not for syncing between buckets</p>
+<h2>AWS ECS cluster</h2>
+<p>AWS Cloud</p>
+<figure class="image">
+<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-10_871_1301_378_416.jpg">
+<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-10_871_1301_378_416.jpg" alt="AWS Solutions Architect study note diagram.">
+</a>
+</figure>
+<ul >
+<li>Corresponding terms in EKS are worker nodes, pods, containers</li>
+</ul>
+<ul >
+<li>ECS Cluster span across multiple AZs but not regions</li>
+</ul>
+<p>Backup/disaster recovery versus. high availability</p>
+<ul >
+<li>First is about recover lost data. Not an instant process, service still has down time</li>
+</ul>
+<ul >
+<li>The other is about deploying in multiple AZ, when one AZ is down, others can pick up immediately</li>
+</ul>
+<p>Database level features like Oracle built in RMAN might not be directly available in AWS as AWS manage these services themselves</p>
+<p>S3 bucket policy versus access points:</p>
+<ul >
+<li>Bucket policy is one per entire bucket, and access points are more granular and can have multiple per bucket for different targets</li>
+</ul>
+<ul >
+<li>Each access point has its unique hostname and endpoint</li>
+</ul>
+<ul >
+<li>Bucket policy is easier for cross account access and access points is for restricting requests from specific VPC</li>
+</ul>
+<p>Full instances of auto scaling takes minute because need to spin up new instances, lambda can scale much faster, within seconds. Lambda can absorb<br/>reasonable burst of traffic for <span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mn>15</mn>
+<mo>−</mo>
+<mn>20</mn>
+<mrow>
+<mtext> </mtext>
+<mi mathvariant="normal">m</mi>
+<mi mathvariant="normal">i</mi>
+<mi mathvariant="normal">n</mi>
+</mrow>
+</mrow>
+<annotation encoding="application/x-tex">15-20 \mathrm{~min}</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">15</span>
+<span class="mspace">
+</span>
+<span class="mbin">−</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">20</span>
+<span class="mord">
+<span class="mspace nobreak"> </span>
+<span class="mord mathrm">min</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</p>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">
+</th>
+<th class="simple-table-header-color simple-table-header">Storage class</th>
+<th class="simple-table-header-color simple-table-header">Designed for</th>
+<th class="simple-table-header-color simple-table-header">Availability Zones</th>
+<th class="simple-table-header-color simple-table-header">Min storage duration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Standard</td>
+<td>Frequently accessed data (more than once a month) with milliseconds access</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>-</td>
+</tr>
+<tr>
+<td>◯</td>
+<td>IntelligentTiering</td>
+<td>Data with changing or unknown access patterns</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>-</td>
+</tr>
+<tr>
+<td>◯</td>
+<td>Standard-IA</td>
+<td>Infrequently accessed data (once a month) with milliseconds access</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>30 days</td>
+</tr>
+<tr>
+<td>O</td>
+<td>One ZoneIA</td>
+<td>Recreatable, infrequently accessed data (once a month) stored in a single Availability Zone with milliseconds access</td>
+<td>1</td>
+<td>30 days</td>
+</tr>
+<tr>
+<td>O</td>
+<td>Glacier Instant Retrieval</td>
+<td>Long-lived archive data accessed once a quarter with instant retrieval in milliseconds</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>O</td>
+<td>Glacier Flexible Retrieval (formerly Glacier)</td>
+<td>Long-lived archive data accessed once a year with retrieval of minutes to hours</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>90 days</td>
+</tr>
+<tr>
+<td>O</td>
+<td>Glacier Deep Archive</td>
+<td>Long-lived archive data accessed less than once a year with retrieval of hours</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>180 days</td>
+</tr>
+<tr>
+<td>O</td>
+<td>Reduced redundancy</td>
+<td>Noncritical, frequently accessed data with milliseconds access (not recommended as S3 Standard is more cost effective)</td>
+<td>
+<span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mo>≥</mo>
+<mn>3</mn>
+</mrow>
+<annotation encoding="application/x-tex">\geq 3</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mrel">≥</span>
+<span class="mspace">
+</span>
+</span>
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">3</span>
+</span>
+</span>
+</span>
+</span>
+</span>
+</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Cannot transfer to Standard IA or IA One zone before it has been stored at current storage class for 30 days.</p>
+<p>Expedited retrievals in Glacier which will allow you quickly access data is available.</p>
+<p>For monitoring:</p>
+<ul >
+<li>EC2 built in detailed monitoring doesn’t capture memory utilization and disk I/O while Enhanced Monitoring for RDS instances capture these</li>
+</ul>
+<ul >
+<li>So for normal EC2 instances, we can install CloudWatch agents, this gives similar info as Enhanced Monitoring for RDS</li>
+</ul>
+<p>Why the difference?</p>
+<ol type="1"  start="1">
+<li>Managed Service: RDS is a managed service, so AWS can implement more comprehensive monitoring without requiring user intervention.</li>
+</ol>
+<ol type="1"  start="2">
+<li>Use Case: Databases often require more detailed monitoring due to their critical nature and complex performance characteristics.</li>
+</ol>
+<ol type="1"  start="3">
+<li>Customization: EC2 instances can run a wide variety of applications, so AWS provides a more general set of metrics, leaving it to users to implement more detailed monitoring if needed (e.g., using the</li>
+</ol>
+<p>CloudWatch agent).</p>
+<p>AWS Key Management Service and CloudHSM:<br/>The AWS Key Management Service (KMS) custom key store feature combines the controls provided by AWS CloudHSM with the integration and ease of use of AWS KMS. You can configure your own CloudHSM cluster and authorize AWS KMS to use it as a dedicated key store for your keys rather than the default AWS KMS key store. When you create keys in AWS KMS you can choose to generate the key material in your CloudHSM cluster. KMS Keys that are generated in your custom key store never leave the HSMs in the CloudHSM cluster in plaintext and all AWS KMS operations that use those KMS keys are only performed on your HSMs.</p>
+<p>Cross account access &amp; cross account resource sharing</p>
+<ul >
+<li>IAM is not too relevant. It’s for within same account, permission management</li>
+</ul>
+<ul >
+<li>RAM is for resource sharing across accounts, not within the same account</li>
+</ul>
+<ul >
+<li>Differences between AWS Control Tower and AWS Organization</li>
+</ul>
+<ul >
+<li>Organizations are the foundation of multi accounts management</li>
+</ul>
+<ul >
+<li>AWS CT is built on top of it for automated initial account set up (landing zone), account factory, strict governance, compliance, and monitoring.</li>
+</ul>
+<p>Storage Gateway vs. DataSync<br/>Storage Gateway is for ongoing, hybrid cloud storage scenarios with frequent data access needs. Storage Gateway cannot transfer to AWS Glacier or AWS Glacier Archive. Needs to transfer to other S3 standard tier first then move to Glacier.<br/>Mostly used for data replication. File gateway, volume gateway (cached and stored volume types), tape gateway .<br/>DataSync is for efficient, large-scale data transfers, ideal for migrations or periodic large data movements. DataSync can directly transfer to Glacier layer. Mostly used for data migration.</p>
+<p>Route 53:<br/>Geoproximity: location of users and hosts.<br/>Use case: assign user traffic to hosts with closest distance, with fine grained control on how much traffic route to a region.<br/>Geolocation: location of users<br/>Use cases: restrict some content for users in some areas</p>
+<p>Application layer versus transport layer:</p>
+<ul >
+<li>Application load balancer vs. network load balancer</li>
+</ul>
+<ul >
+<li>Have request header info such as path, host versus have ip and port info<br/>only</li>
+</ul>
+<p>Gateway endpoint versus interface endpoint</p>
+<ul >
+<li>Both are used to set up private ip connections between two instances</li>
+</ul>
+<ul >
+<li>Two types of VPC endpoints</li>
+</ul>
+<ul >
+<li>Only for S3 and dynamoDB versus all others</li>
+</ul>
+<ul >
+<li>Free to use versus cost money</li>
+</ul>
+<p>Instance store versus EBS</p>
+<ul >
+<li>Ephemeral, physical attached to host, data lost on stop/terminate, price included in instance, very high I/O performance</li>
+</ul>
+<ul >
+<li>Persistent, network attached, separate price, consistent performance</li>
+</ul>
+<p>ENI is a logical network component attached to EC2 instances:</p>
+<ul >
+<li>Provide primary private ipv4, several secondary private ipv4, one elastic ip per private ipv4, one public ipv4</li>
+</ul>
+<ul >
+<li>Elastic ip is a static public ipv4 address allocated to my aws account</li>
+</ul>
+<ul >
+<li>EIP can be attached to different AWS resources:</li>
+</ul>
+<ul >
+<li>To EC2 directly, or to network interface (ENI) attached to the instance</li>
+</ul>
+<ul >
+<li>NAT Gateway, requires its own EIP</li>
+</ul>
+<ul >
+<li>Network load balancer</li>
+</ul>
+<ul >
+<li>Cannot attach EIP to ALB</li>
+</ul>
+<ul >
+<li>Private and public ipv6</li>
+</ul>
+<p>Kinesis data stream:</p>
+<ul >
+<li>Data is expected to read/write real time. So only store for 24 hours. (24 hours by default, now can store up to 365 days)</li>
+</ul>
+<ul >
+<li>If need temporal storage, use SQS (default 4 days, 14 days max)</li>
+</ul>
+<ul >
+<li>Kinesis requires provisioning of shards. SQS is a cheaper option since only pay for what you use.</li>
+</ul>
+<p>Tags are key value pairs used to organize AWS resources. Like environment: {dev, uat, prod}<br/>Config rules are a lot more customizable, we could have a custom Config rule called “prod-instance-type-check” that does the following:</p>
+<ul >
+<li>Checks all EC2 instances tagged with “Environment”: “Production”</li>
+</ul>
+<ul >
+<li>Ensures they are using approved instance types (e.g., c5.xlarge, m5.2xlarge)</li>
+</ul>
+<ul >
+<li>These rules run every day by default and can be configured to run every hour</li>
+</ul>
+<p>EBS volume type:<br/>General Purpose (SSD) is the new, SSD-backed, general purpose EBS volume type that is recommended as the default choice for customers. General Purpose (SSD) volumes are suitable for a broad range of workloads, including small to medium-sized databases, development and test environments, and boot volumes. Provisioned IOPS (SSD) volumes offer storage with consistent and low-latency performance and are designed for I/O intensive applications such as large relational or NoSQL databases. Magnetic volumes provide the lowest cost per gigabyte of all EBS volume types.<br/>Magnetic volumes are ideal for workloads where data are accessed infrequently, and applications where the lowest storage cost is important. Take note that this is a Previous Generation Volume. The latest low-cost magnetic storage types are Cold HDD (sc1) and Throughput Optimized HDD (st1) volumes.</p>
+<p>EBS:</p>
+<ul >
+<li>Root volume: contains os that is used to boot the instance, like any primary disk that contains your OS on any computer. Has delete on termination flag on by default.</li>
+</ul>
+<ul >
+<li>Any other EBS volume: by default is persistent (has delete on termination flag off)</li>
+</ul>
+<p>Difference between standby replica and read replica:</p>
+<ul >
+<li>Automatic failover, same or different AZ, same or different region</li>
+</ul>
+<ul >
+<li>Same or different AZ, same region</li>
+</ul>
+<p>Ensures data delivery ordering:</p>
+<ul >
+<li>Kinesis data stream</li>
+</ul>
+<p>Kinesis firehose, SQS, SNS all don’t guarantee ordering. SQS might have dupes too. SQS FIFO dedupe. AWS Step function guarantees no dupe tasks.</p>
+<p>Storage optimized versus memory optimized:</p>
+<ul >
+<li>High I/O, best used for NoSQL databases like Cassandra and MongoDB</li>
+</ul>
+<ul >
+<li>Optimized for RAM</li>
+</ul>
+<p>SQS long vs. short polling:</p>
+<ul >
+<li>Long polling wait up to 20 seconds. Only return response when there’s message available for consumption or timeout. It requires less CPU usages, saves cost.</li>
+</ul>
+<p>Amazon aurora:</p>
+<ul >
+<li>Separates compute and storage. Storage is automatically highly<br/>available.</li>
+</ul>
+<ul >
+<li>In terms of failover, it’s the compute that needs to get updated.</li>
+</ul>
+<ul >
+<li>User needs to explicitly create aurora replicas. If there’s replicas available. When failover, aurora updates CNAME records to point to other ones. If replica is not available and using Aurora serverless, aurora tries to create a replica in a different AZ automatically. If no replica is available and is not running Aurora serverless, Aurora first tries to create a replica in the same AZ with best effort.</li>
+</ul>
+<p>When you create an encrypted EBS volume and attach it to EC2, encryption happens at EC2. All these are encrypted:</p>
+<ul >
+<li>Data at rest</li>
+</ul>
+<ul >
+<li>Data in transit</li>
+</ul>
+<ul >
+<li>Snapshots</li>
+</ul>
+<ul >
+<li>Volume created from snapshots</li>
+</ul>
+<p>Amazon EKS:</p>
+<ul >
+<li>EKS Cluster:</li>
+</ul>
+<ul >
+<li>Control Plane: AWS manages this for us. The brain of the cluster.</li>
+</ul>
+<ul >
+<li>Worker nodes: each node is an EC2 instance</li>
+</ul>
+<ul >
+<li>Pod: smallest deployable unit. Containers inside share storage and network resources. Usually run a single container but can run multiple related containers.</li>
+</ul>
+<ul >
+<li>Container: packaged application code and dependencies</li>
+</ul>
+<ul >
+<li>Operates within 1 region, can span multiple AZ</li>
+</ul>
+<ul >
+<li>Important exam topics:</li>
+</ul>
+<ol type="1"  start="1">
+<li>EKS Networking:</li>
+</ol>
+<ul >
+<li>Uses VPC CNI for networking</li>
+</ul>
+<ul >
+<li>Container Network Interface: ENI attached to the node is CNI</li>
+</ul>
+<ul >
+<li>Networking plugin that brings networking properties of EC2 instance to pods, assign VPC IP addresses and provides native VPC networking for containers</li>
+</ul>
+<ul >
+<li>Each pod gets an IP address from your VPC</li>
+</ul>
+<ul >
+<li>Supports AWS security groups integration</li>
+</ul>
+<ol type="1"  start="1">
+<li>EKS Security:</li>
+</ol>
+<ul >
+<li>Integration with IAM for authentication</li>
+</ul>
+<ul >
+<li>Uses RBAC (Role-Based Access Control) for authorization</li>
+</ul>
+<ul >
+<li>Use aws-auth ConfigMap to map IAM roles to Kube users. EKS supports both AWS IAM and Kubernetes native RBAC</li>
+</ul>
+<ul >
+<li>Roles: define permissions within a namespace</li>
+</ul>
+<ul >
+<li>ClusterRoles: Define cluster-wide permissions</li>
+</ul>
+<ul >
+<li>Secrets management using AWS Secrets Manager or Parameter Store</li>
+</ul>
+<ol type="1"  start="1">
+<li>Scaling:</li>
+</ol>
+<ul >
+<li>Karpenter/Cluster Autoscaler for nodes</li>
+</ul>
+<ul >
+<li>Horizontal Pod Autoscaler for pods</li>
+</ul>
+<ul >
+<li>Vertical Pod Autoscaler for pod resources</li>
+</ul>
+<ol type="1"  start="1">
+<li>EKS Storage:</li>
+</ol>
+<ul >
+<li>Support for EBS volumes</li>
+</ul>
+<ul >
+<li>EFS for persistent storage</li>
+</ul>
+<ul >
+<li>Amazon FSx for Lustre</li>
+</ul>
+<ol type="1"  start="1">
+<li>Important exam scenarios:</li>
+</ol>
+<ul >
+<li>When to use Fargate vs EC2 nodes</li>
+</ul>
+<ul >
+<li>High availability configurations</li>
+</ul>
+<ul >
+<li>Cost optimization strategies</li>
+</ul>
+<ul >
+<li>Integration with other AWS services</li>
+</ul>
+<figure class="image">
+<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-16_690_1608_1188_259.jpg">
+<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-16_690_1608_1188_259.jpg" alt="AWS Solutions Architect study note diagram.">
+</a>
+</figure>
+<p>Virtual Private Gateway:<br/>AWS’ side endpoint for establishing hybrid connectivity</p>
+<p>Logging in AWS:</p>
+<ul >
+<li>CloudWatch logs &amp; agents</li>
+</ul>
+<ul >
+<li>CloudWatch agents can be installed on EC2 instances and onpremise servers</li>
+</ul>
+<ul >
+<li>System level logging and other customized logging</li>
+</ul>
+<ul >
+<li>Metrics and alerts</li>
+</ul>
+<ul >
+<li>CloudTrail logs</li>
+</ul>
+<ul >
+<li>Records API activity and actions taken in my AWS account</li>
+</ul>
+<ul >
+<li>Auditing &amp; compliance</li>
+</ul>
+<ul >
+<li>Logs are stored in S3 by default</li>
+</ul>
+<ul >
+<li>Logs arrived in S3 within 15 min of any api activity</li>
+</ul>
+<ul >
+<li>Logs can also be configured to store in CloudWatch for real time monitoring and metrics and alarms. And CloudTrail Lake, which is a managed data lake with enhanced search and analysis with SQL-based queries</li>
+</ul>
+<ul >
+<li>Has two types of logs</li>
+</ul>
+<ul >
+<li>Management events: Management operations happened to AWS resources in your AWS accounts. Create a S3 bucket, delete bucket, describe a EC2 instance etc.</li>
+</ul>
+<ul >
+<li>Data events: track changes made to actual data within these resources: S3 get object, put object, delete object etc.</li>
+</ul>
+<ul >
+<li>Use S3 server side encryption</li>
+</ul>
+<ul >
+<li>S3 access Logs</li>
+</ul>
+<ul >
+<li>Must be enabled per bucket</li>
+</ul>
+<ul >
+<li>Detailed records of requests made to the bucket</li>
+</ul>
+<ul >
+<li>Logs stored in a different bucket</li>
+</ul>
+<ul >
+<li>Which user is accessing what data</li>
+</ul>
+<ul >
+<li>Compliance and auditing requirements</li>
+</ul>
+<ul >
+<li>VPC flow logs</li>
+</ul>
+<ul >
+<li>Must be enabled at VPC level, subnet level, or ENI level (smaller the scope, more cost saving it is. ENI is most granular, captures traffic for specific network interfaces)</li>
+</ul>
+<ul >
+<li>Capture IP network traffic information</li>
+</ul>
+<ul >
+<li>ELB access logs</li>
+</ul>
+<ul >
+<li>Must be enabled per load balancer</li>
+</ul>
+<ul >
+<li>Logs stored in a S3 bucket</li>
+</ul>
+<ul >
+<li>Debug client connectivity issues</li>
+</ul>
+<ul >
+<li>Latency performance optimization- records response time, captures TLS handshake timing</li>
+</ul>
+<ul >
+<li>RDS enhanced monitoring</li>
+</ul>
+<ul >
+<li>Must be enabled per RDS instance</li>
+</ul>
+<ul >
+<li>Provides metrics at 1-second granularity</li>
+</ul>
+<ul >
+<li>Gets OS-level metrics directly from RDS instance</li>
+</ul>
+<p>Additional important logging features about CloudWatch logs:</p>
+<ul >
+<li>CloudWatch Logs Insights: Allows interactive querying and analysis of log data directly</li>
+</ul>
+<ul >
+<li>Log Groups &amp; Log Streams: help organize logs in a hierarchical structure</li>
+</ul>
+<p>IAM policy evaluation policy:</p>
+<ul >
+<li>By default, everything is denied</li>
+</ul>
+<ul >
+<li>Explicit ALLOW overrides the default</li>
+</ul>
+<ul >
+<li>Explicit DENY overrides everything</li>
+</ul>
+<p>Different IP and DNS:</p>
+<ul >
+<li>Elastic IP: only public fixed ip. Cost money when not attached to running instances, can be moved between instances</li>
+</ul>
+<ul >
+<li>Public IP: changes when instance restarts</li>
+</ul>
+<ul >
+<li>Private IP: fixed within VPC</li>
+</ul>
+<p>Different DNS records:<br/>Not just AWS:</p>
+<ul >
+<li>A record: point to specific ipv4, can point to static IP or public ip</li>
+</ul>
+<ul >
+<li>AAAA record: point to specific ipv6</li>
+</ul>
+<ul >
+<li>CNAME: map subdomains to domains. Doesn’t do ip mapping, only domain name mapping. Cannot point to root domain (Zone apex). Can only do www.example.com (subdomain) -&gt; example.com but not example.com -&gt; anything.</li>
+</ul>
+<ul >
+<li>DNS name: www.example.com</li>
+</ul>
+<ul >
+<li>www is subdomain, example.com is domain name or zone apex. CNAME is not allowed at apex zone, always use A record AWS:</li>
+</ul>
+<ul >
+<li>ALIAS record: point to specific AWS resources. AWS thing. More recommended since lots of AWS services’ ip are dynamic.</li>
+</ul>
+<ul >
+<li>Alias with type A: ipv4</li>
+</ul>
+<ul >
+<li>Alias with type AAAA: ipv6</li>
+</ul>
+<p>AWS AppSync pipeline resolvers: aggregate data from different sources. Chain a few requests that needs data from multiple resources and combine responses. Can used to grab data from the same AWS data storage service but different tables- instead of several separate requests, combine to one request.</p>
+<p>AWS WAF rules are evaluated from top to bottom. So if want to allow a specific ip from a country but want to block others from that country. Could have a ALLOW rule for that ip set with that ip. First rule that matches the request is applied.</p>
+<p>VPC endpoints are region specific</p>
+<p>In route table, you specify target and destination. Destination is the CIDR block of the target network. Target is the next stop for traffic like a peering connection, internet gateway.</p>
+<p>Pricing models of EC2 instances, from cheapest to most expensive:</p>
+<ul >
+<li>Spot instances</li>
+</ul>
+<ul >
+<li>Savings Plans</li>
+</ul>
+<ul >
+<li>Agrees to a spend rate per hour- <span class="notion-text-equation-token">
+<span>
+</span>
+<span>
+<span class="katex">
+<span class="katex-mathml">
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+<semantics>
+<mrow>
+<mi mathvariant="normal">$</mi>
+<mn>5</mn>
+<mi mathvariant="normal">/</mi>
+<mi mathvariant="normal">h</mi>
+</mrow>
+<annotation encoding="application/x-tex">\$ 5 / \mathrm{h}</annotation>
+</semantics>
+</math>
+</span>
+<span class="katex-html">
+<span class="base">
+<span class="strut">
+</span>
+<span class="mord">$5/</span>
+<span class="mord mathrm">h</span>
+</span>
+</span>
+</span>
+</span>
+</span> (agree to that at least you will use 5 per hour resources). If actual spending is less than agreed spend rate, extra can be used for other things. Can switch underlying resources- different instance families, sizes, operating systems, and even AWS services (Fargate, Lambda)</li>
+</ul>
+<ul >
+<li>Reserved Instances</li>
+</ul>
+<ul >
+<li>On-Demand instances</li>
+</ul>
+<ul >
+<li>Dedicated hosts/instances</li>
+</ul>
+<p>CloudFront origin group:</p>
+<ul >
+<li>Allows to define multiple origins and a failover mechanism</li>
+</ul>
+<ul >
+<li>If primary origin is unavailable, CloudFront automatically routes to the second</li>
+</ul>
+<p>Access keys are necessary when new IAM users try to send api requests programmatically</p>
+<p>EBS Encryption by default is a region specific behavior, not by each EBS. You enable EBS encryption for us-east-1.</p>
+<p>Remote Desktop Connect is TCP/UDP port, which is 3389</p>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">22</th>
+<th class="simple-table-header-color simple-table-header">SSH (Secure Shell)</th>
+<th class="simple-table-header-color simple-table-header">Secure remote login and file transfer (SCP/ SFTP).</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>53</td>
+<td>DNS (Domain Name System)</td>
+<td>Resolves domain names to IP addresses.</td>
+</tr>
+<tr>
+<td>80</td>
+<td>HTTP</td>
+<td>Unencrypted web traffic.</td>
+</tr>
+<tr>
+<td>8080</td>
+<td>HTTP (Alternate)</td>
+<td>Alternate port for web servers (often used in development).</td>
+</tr>
+<tr>
+<td>443</td>
+<td>HTTPS</td>
+<td>Secure web traffic, encrypted with SSL/ TLS.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">25</th>
+<th class="simple-table-header-color simple-table-header">SMTP</th>
+<th class="simple-table-header-color simple-table-header">Sending emails (often replaced by 587 or 465 for secure email).</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>143, 993</td>
+<td>IMAP, IMAPS</td>
+<td>Email retrieval (standard and secure versions).</td>
+</tr>
+<tr>
+<td>3306</td>
+<td>MySQL</td>
+<td>Default port for MySQL databases.</td>
+</tr>
+<tr>
+<td>5432</td>
+<td>PostgreSQL</td>
+<td>Default port for PostgreSQL databases.</td>
+</tr>
+<tr>
+<td>3389</td>
+<td>RDP (Remote Desktop Protocol)</td>
+<td>Remote desktop connections to Windows systems.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Important ports:</p>
+<ul >
+<li>FTP: 21</li>
+</ul>
+<ul >
+<li>SSH: 22</li>
+</ul>
+<ul >
+<li>SFTP: 22 (same as SSH)</li>
+</ul>
+<ul >
+<li>HTTP: 80</li>
+</ul>
+<ul >
+<li>HTTPS: 443<br/>vs RDS Databases ports:</li>
+</ul>
+<ul >
+<li>PostgreSQL: 5432</li>
+</ul>
+<ul >
+<li>MySQL: 3306</li>
+</ul>
+<ul >
+<li>Oracle RDS: 1521</li>
+</ul>
+<ul >
+<li>MSSQL Server: 1433</li>
+</ul>
+<ul >
+<li>MariaDB: 3306 (same as MySQL)</li>
+</ul>
+<ul >
+<li>Aurora: 5432 (if PostgreSQL compatible) or 3306 (if MySQL compatible)</li>
+</ul>
+<p>Target servers listen to these ports for certain standards<br/>S3 file gateway is an interface - ingest SMB and NFS file formats and store as objects. Retrieve objects as SMB and NFS file formats again. When setting up gateway, can specify a disk space as local cache. Write and retrieve from cache first, which is pretty instant, eventual consistency with S3.</p>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Concept</th>
+<th class="simple-table-header-color simple-table-header">Amazon ECS</th>
+<th class="simple-table-header-color simple-table-header">Amazon EKS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Container  Orchestration Engine</td>
+<td>ECS Engine</td>
+<td>Kubernetes</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Compute Resources</th>
+<th class="simple-table-header-color simple-table-header">ECS Cluster (EC2 or Fargate instances)</th>
+<th class="simple-table-header-color simple-table-header">EKS Cluster (EC2 instances or Fargate)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Containerized Application</td>
+<td>ECS Task (individual container)</td>
+<td>Pod (container within a Kubernetes service)</td>
+</tr>
+<tr>
+<td>Scaling</td>
+<td>ECS Service Auto Scaling (based on metrics)</td>
+<td>Kubernetes Horizontal Pod Autoscaler (HPA)</td>
+</tr>
+<tr>
+<td>Task Definition</td>
+<td>Task Definition (specifies container image, resources, etc.)</td>
+<td>Pod Specification (YAML file describing Pods)</td>
+</tr>
+<tr>
+<td>Container Networking</td>
+<td>awsvpc Mode (Each task gets its own ENI)</td>
+<td>Kubernetes CNI (e.g., AWS VPC CNI plugin)</td>
+</tr>
+<tr>
+<td>Routing Traffic</td>
+<td>Application Load Balancer (ALB) Target Groups</td>
+<td>Kubernetes Service (with internal/external load balancer)</td>
+</tr>
+<tr>
+<td>Logging &amp; Monitoring</td>
+<td>CloudWatch Logs, CloudWatch Metrics</td>
+<td>CloudWatch Logs, Prometheus, Metrics Server</td>
+</tr>
+<tr>
+<td>IAM Integration: ECS/ EKS to use</td>
+<td>IAM Roles for Tasks</td>
+<td>IAM Roles for Service Accounts (IRSA)</td>
+</tr>
+<tr>
+<td>Role-based Access Control: for other resources talk to ECS/ EKS</td>
+<td>IAM Policies (for tasks and services)</td>
+<td>Kubernetes RBAC (Role-based Access Control)</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>EFS, EBS, S3, or other AWS storage options</td>
+<td>EFS, EBS, S3, or other AWS storage options</td>
+</tr>
+<tr>
+<td>Control Plane Management</td>
+<td>Fully Managed (no control plane management)</td>
+<td>Fully Managed (with Kubernetes API Server)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>How ECS work: user creates a docker image -&gt; update to ECR -&gt; create a task / define a task (with multiple containers maybe) -&gt; set up a cluster -&gt; specify deploy this task to the cluster.<br/>If for long running jobs: can use ECS service to specify minimum running tasks, integrate with load balancer, set up alerting and monitoring</p>
+<figure class="image">
+<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-22_592_1610_210_257.jpg">
+<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-22_592_1610_210_257.jpg" alt="AWS Solutions Architect study note diagram.">
+</a>
+</figure>
+<p>AWS Lex versus AWS Comprehend:</p>
+<ul >
+<li>Conversational chatbots or voice agent versus key insights like sentiment, key phrases</li>
+</ul>
+<ul >
+<li>Intent analysis (what is used to build alexa) versus. none</li>
+</ul>
+<p>AWS AppStream: managed application streaming service that allows you to stream desktop applications to other devices. Instead for users to download apps on their local desktop, they can access these desktop apps on web browser.</p>
+<p>For CloudFormation template, only Resources field is required. All others are optional: Format Version, Description, Metadata, Parameters, Mappings, Conditions, Transform, Outputs.</p>
+<p>For S3, you can set separate permissions for each object uploaded. By default, it’s owned by whoever uploads it despite bucket is created by someone else. Object owner needs to explicitly grant bucket owner access.</p>
+<p>Service Control Policies in AWS Organizations lets org put restriction on what IAM roles and users and groups can access. SCP sets resource permission boundary.</p>
+<p>Aurora cluster cloning can be a great tool for database replication. Allow you to create a copy instantly without affecting the performance of the current database. Copy on write, performant cloning but also mean deleting the original cluster will break something.</p>
+<p>Cluster placement group is a logical grouping of instances. They have a higher throughput and lower latency. A cluster placement group can span multiple VPCs in the same region. It’s suggested to launch all instances and of same type together. Otherwise we risk having insufficient capacity error.</p>
+<p>AWS Beanstalk actually supports deployment of web applications from docker images. Service Autoscaling, load balancing, and monitoring are all built in. With ECS, they aren’t enabled by default. Beanstalk support web applications written in various server languages.</p>
+<p>Container mount point: location within a container’s filesystem where external storage is attached or mounted. Mounting storage allows containers to:</p>
+<ul >
+<li>Share data with other containers or applications</li>
+</ul>
+<ul >
+<li>Persist data beyond lifecycle of the container</li>
+</ul>
+<ul >
+<li>Access external data sources or repositories</li>
+</ul>
+<p>Available container mount points: (mostly are file systems)</p>
+<ul >
+<li>EFS</li>
+</ul>
+<ul >
+<li>EBS</li>
+</ul>
+<ul >
+<li>Amazon FSx</li>
+</ul>
+<ul >
+<li>Docker Volumes</li>
+</ul>
+<ul >
+<li>Amazon S3 (via tools like S3 FUSE)</li>
+</ul>
+<ul >
+<li>Ephemeral Storage (Fargate)</li>
+</ul>
+<p>Data lake in AWS:</p>
+<ul >
+<li>Store structured and unstructured data at any scale.</li>
+</ul>
+<ul >
+<li>Actual lake is S3 and AWS Lake Formation is where we store metadata, fine-grained access control etc. S3 is access controlled by Lake Formation.</li>
+</ul>
+<ul >
+<li>Lake Formation has data filters that control column level access</li>
+</ul>
+<ul >
+<li>AWS Lake Formation Blueprints are designed to automate the process of data ingestion into the data lake</li>
+</ul>
+<ul >
+<li>Load only new data</li>
+</ul>
+<ul >
+<li>Support different data sources: relational, S3, streaming data sources, NoSQL</li>
+</ul>
+<p>Lambda functions:<br/>Execution roles: grant function access to other AWS resources<br/>Resource-based policy: give other AWS accounts access to manage lambda functions.</p>
+<p>NLB itself operates at the network layer, but supports HTTP/HTTPS health checks to evaluate target’s application-layer responsiveness. NLS itself cannot load balance https requests, like if multiple http requests hit the load balancer, it won’t be able to distribute them away. Pick ALB if application needs url based routing or host name based routing.</p>
+<p>Message MQ<br/>Use cases:</p>
+<ul >
+<li>Bidirectional communication or persistent connections are essential</li>
+</ul>
+<ul >
+<li>Advanced messaging features such as message routing</li>
+</ul>
+<ul >
+<li>Migrating existing brokers like ActiveMQ and Rabbit MQ.</li>
+</ul>
+<p>In Amazon MQ for RabbitMQ, a cluster broker deployment set up is recommended to ensure high availability.<br/>Active/standby is often used for ActiveMQ</p>
+<p>Compute Optimizer: gives recs on what resources have been over and under provisioned. Saves money and improve performance. Supports EC2 Auto Scaling group, Amazon EC2, Amazon EBS, AWS Lambda functions.</p>
+<p>AWS Transfer Family:</p>
+<ul >
+<li>Transfer files to S3 and other data storage using FTP protocols: SFTP, FTP, FTPS, HTTPS etc. ’</li>
+</ul>
+<p>AWS Data Exchange is a data marketplace and management service that simplifies the discovery, subscription, and usage of third party data sets.</p>
+<p>Storing secrets in AWS:</p>
+<ul >
+<li>AWS Secrets Manager: secrets</li>
+</ul>
+<ul >
+<li>AWS Systems Manager Parameter Store: plain text, environment variable</li>
+</ul>
+<p>Athena can use AWS Glue Data Catalog to get table metadata so it knows how to read, find, and process the data you want to query.</p>
+<p>A managed prefix list is a set of one or more CIDR blocks. Could be easier to maintain security groups. Can share this with other AWS accounts using RAM.</p>
+<p>Four elastic load balancers:</p>
+<ul >
+<li>NLB</li>
+</ul>
+<ul >
+<li>ALB</li>
+</ul>
+<ul >
+<li>Gateway Load Balancer</li>
+</ul>
+<ul >
+<li>Classic Load Balancer. AWS only recommends using the classic load balancer if the application is built with Amazon Elastic Compute Cloud (Amazon EC2)</li>
+</ul>
+<ul >
+<li>Cross zone balancing</li>
+</ul>
+<p>EMR cluster:</p>
+<ul >
+<li>Master node: manage cluster resources, allocate tasks to core and task nodes, single instance per cluster</li>
+</ul>
+<ul >
+<li>Core nodes: stores and process tasks, runs HDFS DataNode, actual run mapreduce tasks</li>
+</ul>
+<ul >
+<li>Task nodes: doesn’t store data, just as extra compute resources</li>
+</ul>
+<p>FSx is a high performance file system.<br/>Different FSx file systems:</p>
+<ul >
+<li>FSx for NetApp ONTAP: supports both NFS and SMB</li>
+</ul>
+<ul >
+<li>FSx for OpenZFS: wide range of workloads such as big data analytics, media processing, and content repositories. Supports NFSv4.1 protocol and provides feature like data deduplication, data compression, and snapshots for improved storage efficiency and data protection. (TODO: check differences between SMB and NFS &amp; NFS and NFSI)</li>
+</ul>
+<ul >
+<li>FSx for windows file server: Active Directory integration, supports SMB which make it compatible for windows applications</li>
+</ul>
+<ul >
+<li>FSx for Lustre: low latency access to data, high throughput, high IOPS. For compute intensive workloads, such as HPC, machine learning, and video processing. Native integration with S3.</li>
+</ul>
+<p>Data transfer between EC2, RDS, Redshift, ElasticCache instances, and Elastic Network Interface in the same AZ is free.</p>
+<p>AWS Outposts: extending AWS infra to on-premises data centers, expensive and complex, doesn’t guarantee low-latency<br/>AWS Wavelength Zones: designed for 5 G mobile edge computing, located within telecom provider networks<br/>AWS Local Zones: extend AWS infra closer to end-users, local zones are usually in highly populated place, provide low-latency, can extend VPC to local zone</p>
+<p>
+<a href="#fn1">1</a>Access keys are for programs running out of AWS for example to access AWS resources. AWS resources accessing each other should use IAM role.</p>
+<p>Presigned S3 url. As long as you have the url you can interact with S3 or some objects. Even no need to have a AWS credentials.</p>
+<p>ECS Agent uses EC2 Instance profile to talk to ECS Service, ECR, Cloudwatch logs ALB is recommended to integrate with tasks.<br/>Fargate + EFS = serverless<br/>Amazon S3 cannot be mounted to ECS tasks</p>
+<p>DynamoDB gateway is deployed to VPC and associated with route table. So when applications wants to connect to database, it uses the private ip address associated with the gateway and router sends traffic via non public internet. DynamoDB Backup is only free and available for replication within same AZ. Cross account and region replication needs AWS Backup.</p>
+<p>DynamoDB stream is ordered. DynamoDB stream + lambda is classic. DynamoDB Autoscaling is not enabled by default.</p>
+<p>Amazon S3 server side encryption: you request S3 to encrypt data before saving it to disk.<br/>Or client side encryption: client is responsible for encrypting and only send to S3 encrypted data.</p>
+<p>EBS:<br/>EBS encryption is a region specific feature. And doesn’t support asymmetric keys. Even if they support you to specify a symmetric key for snapshot copy operation, it’s still not recommended if not necessary as the process is highly manual. EBS volume supports live configuration changes in production, which means I can modify volume size, volume type, and IOPS capacity without service interruptions.</p>
+<p>Amazon Data Life Cycle manager BLOCK STORAGE IS EBS.</p>
+<p>Can specify RAID 0 as a configuration for EBS and instance store. RAID 0 improves I/O performance by distributing the I/O across the volume in a stripe. RAID 1 is for data mirroring.</p>
+<p>EFS:</p>
+<p>POSIX: OS interface. Applications and file systems use methods defined on this interface to implement their features.<br/>Hierarchical directory via NFSv4 protocol. Highly scalable can accessed by thousands of servers in multiple AZs.<br/>One of the major use cases of EFS is container services.</p>
+<p>Load balancer:</p>
+<ul >
+<li>Cross zone load balancing: each instance in all AZs receive same amount of traffic</li>
+</ul>
+<ul >
+<li>Target groups is a term for load balancer</li>
+</ul>
+<p>AWS WAF: rules are specified with Web ACL.</p>
+<p>Can enable ELB access logs</p>
+<p>IAM:<br/>IAM Identity Center: formally known as Amazon SSO. Only supports SAML 2.0 Manage access across AWS accounts, Cloud applications, custom applications</p>
+<figure class="image">
+<a href="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-27_888_1606_1310_259.jpg">
+<img src="../assets/img/field-notes/aws-solutions-architect/images4d15ee1b-1943-4082-a923-2d2a48c86e40-27_888_1606_1310_259.jpg" alt="AWS Solutions Architect study note diagram.">
+</a>
+</figure>
+<p>An example IdP could be Microsoft Active Directory Federation Service.<br/>Web Identity Federation is just to verify ur identity via Google, Facebook, Apple etc.</p>
+<p>Access keys are for programatic access.</p>
+<p>Suspicious access pattern - GuardDuty</p>
+<p>IAM policy works with SAML, STS, or a custom identity broker, not LDAP.</p>
+<p>Lambda functions:</p>
+<ul >
+<li>if deployed lambda functions reach VPC ip addresses or ENI limits, cannot scale more, has EC2ThrottledException error.</li>
+</ul>
+<ul >
+<li>When deploy lambda functions in ur VPC, you attach ENI on it, therefore lambda scaling is limited to number of ENIs</li>
+</ul>
+<ul >
+<li>Lambda is considered the most cost effective, as you literally pay for how many requests and processing time you use, rounded to closet 1 second.</li>
+</ul>
+<p>RDS:</p>
+<ul >
+<li>Can authenticate to RDS and Aurora using IAM database authentication, works with MySQL and PostgresSQL.</li>
+</ul>
+<ul >
+<li>RDS generates an authentication token on request and it’s valid for 15 min</li>
+</ul>
+<ul >
+<li>RDS read replica is asynchronous replication, and standby replica is synchronous</li>
+</ul>
+<p>S3:<br/>Intelligent tiering only moves data to and from IA to standard, can’t move to glacier.</p>
+<p>VPC:</p>
+<ul >
+<li>Can have ipv4 only, ipv4 + ipv6 addresses VPC, no ipv6 only VPC</li>
+</ul>
+<ul >
+<li>If start a ipv6 only subnet, only allow for non-nitro instances</li>
+</ul>
+<p>CloudFront Match Viewer protocol policy: communicate with origin with http or https depends on whichever user uses.</p>
+<ul >
+<li>Origin Access Identity. Create to only allow access to S3 via CloudFront.</li>
+</ul>
+<p>Amazon simple email is more for customers- template for transactions, email campaign, bulk email</p>
+<p>Redshift spectrum allows u to query on S3 without having to import all data to Redshift.</p>
+<p>When you specify to use Amazon Aurora, it’s usually composed of a cluster of instances. When you specify a connection to the cluster, you specify through an endpoint. There’s primary endpoint for write and update and read endpoint for load balancing all query requests.</p>
+<p>AnyCast IP: a static ip that receives requests and forward to the geo closest server. CDN, CloudFront</p>
+<p>Source attribute in a security group rule could be an ip, a security group id, a prefix list</p>
+<p>AWS Database Migration service promises no downtime. Taking snapshots or promoting a read replica to primary all have some unavailable time.</p>
+<p>AppFlow is a service that helps transfer data between Saas - salesforce, Zendesk to AWS</p>
+<p>Transit Gateway can connect traffic among VPCs, VPNs, and on premises data centers.</p>
+<p>SSH, FTP uses TCP. TCP reliable, ordered packets.</p>
+<p>Amazon Workshop - run virtual desktops in AWS</p>
+<p>CloudFront origin shield help reduce load of an origin (S3) by having a caching layer in the front.</p>
+<p>For stopped and hibernated EC2 instances, you only pay for EBS and EIP.</p>
+<p>Private Link: one VPC connect to a specific AWS service in another VPC using VPC endpoint. One direction connection.<br/>VPC peering: direct connection between two VPCs, bidirectional.</p>
+<p>AWS Control Tower vs. AWS Organizations</p>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Feature</th>
+<th class="simple-table-header-color simple-table-header">AWS Control Tower</th>
+<th class="simple-table-header-color simple-table-header">AWS Organizations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multi-Account Setup</td>
+<td>✓ Yes (automated)</td>
+<td>X No (manual setup)</td>
+</tr>
+<tr>
+<td>Security Guardrails</td>
+<td>✓ Yes (pre-configured &amp; custom)</td>
+<td>X No</td>
+</tr>
+<tr>
+<td>IAM Identity Center (SSO) Integration</td>
+<td>□ Yes</td>
+<td> No</td>
+</tr>
+<tr>
+<td>Account Factory</td>
+<td>□ Yes (automated account creation)</td>
+<td> No</td>
+</tr>
+<tr>
+<td>Centralized Logging &amp; Monitoring</td>
+<td>□ Yes</td>
+<td> No</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Customization</th>
+<th class="simple-table-header-color simple-table-header">V Yes (Guardrails,  OUs, policies)</th>
+<th class="simple-table-header-color simple-table-header">V Yes (Custom SCPs)</th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+</div>
+<div class="study-table-wrap">
+<table class="simple-table">
+<thead class="simple-table-header">
+<tr>
+<th class="simple-table-header-color simple-table-header">Feature</th>
+<th class="simple-table-header-color simple-table-header">AWS Trusted Advisor</th>
+<th class="simple-table-header-color simple-table-header">AWS Well-Architected Tool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Purpose</td>
+<td>Optimizes cost, performance, security, and fault tolerance of AWS resources.</td>
+<td>Evaluates and improves cloud architecture based on best practices.</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Checks AWS resource configurations (EC2, S3, IAM, RDS, etc.).</td>
+<td>Reviews overall cloud architecture (design decisions, resilience, security).</td>
+</tr>
+<tr>
+<td>Focus Areas</td>
+<td>Cost optimization, security, fault tolerance, performance, and service limits.</td>
+<td>Well-Architected  Pillars: Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, and Sustainability.</td>
+</tr>
+<tr>
+<td>Assessment Type</td>
+<td>Automated checks and real-time recommendations.</td>
+<td>Manual selfassessment guided by AWS best practices.</td>
+</tr>
+<tr>
+<td>Who Uses It?</td>
+<td>Cloud administrators, DevOps engineers managing AWS resources.</td>
+<td>Solutions architects, cloud engineers designing AWS workloads.</td>
+</tr>
+<tr>
+<td>Automation Level</td>
+<td>Fully automated provides real-time alerts and reports.</td>
+<td>Partially automated requires manual input and review.</td>
+</tr>
+<tr>
+<td>Customization</td>
+<td>Limited - predefined checks.</td>
+<td>Custom lenses available for specific industry use cases.</td>
+</tr>
+<tr>
+<td>Reporting &amp; Insights</td>
+<td>Generates resourcespecific recommendations.</td>
+<td>Provides holistic architectural reviews and guidance.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr/>
+<ol type="1"  start="1">
+<li>Evaluation order:<br/>EC2 Security groups: everything denied by default, all allow security groups rules are evaluated together with OR.<br/>Security groups can be placed on EC2, ENI, ALB.<br/>ACL from lowest number to highest.<br/>WAF is from top to bottom<br/>IAM is everything by default deny, explicit allow overrides default, explicit deny overrides everything<a href="#fnref1">↩︎</a>
+</li>
+</ol>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>

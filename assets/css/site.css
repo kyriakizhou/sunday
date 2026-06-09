@@ -264,6 +264,135 @@ a {
   padding-left: 0.25em;
 }
 
+.study-note {
+  max-width: min(960px, 100%);
+}
+
+.study-note-body {
+  color: rgba(6, 29, 73, 0.62);
+}
+
+.study-note-body h2,
+.study-note-body p:has(+ ul),
+.study-note-body p:has(+ ol),
+.study-note-body p:has(+ figure),
+.study-note-body p:has(+ .study-table-wrap) {
+  margin: 56px 0 16px;
+  color: var(--ink);
+  font-size: clamp(18px, 1.8vw, 25px);
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.study-note-body h2:first-child {
+  margin-top: 0;
+}
+
+.study-note-body p {
+  margin: 16px 0;
+}
+
+.study-note-body ul,
+.study-note-body ol {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding-left: 1.4em;
+  color: rgba(6, 29, 73, 0.62);
+  line-height: var(--leading-normal);
+}
+
+.study-note-body ul + ul,
+.study-note-body ol + ul,
+.study-note-body ul + ol,
+.study-note-body ol + ol {
+  margin-top: -2px;
+}
+
+.study-note-body h2 + h2,
+.study-note-body h2 + p:has(+ ul),
+.study-note-body h2 + p:has(+ ol),
+.study-note-body p:has(+ ul) + h2,
+.study-note-body p:has(+ ol) + h2,
+.study-note-body p:has(+ figure) + h2,
+.study-note-body p:has(+ .study-table-wrap) + h2 {
+  margin-top: 34px;
+}
+
+.study-note-body li {
+  padding-left: 0.25em;
+}
+
+.study-note-body figure {
+  margin: 24px 0;
+}
+
+.study-note-body figure img {
+  display: block;
+  width: min(100%, 520px);
+  height: auto;
+  border: 1px solid rgba(6, 29, 73, 0.1);
+}
+
+.study-code {
+  margin: 16px 0 0;
+  padding: 16px;
+  overflow-x: auto;
+  border: 1px solid rgba(6, 29, 73, 0.1);
+  background: rgba(6, 29, 73, 0.035);
+  color: rgba(6, 29, 73, 0.72);
+  font-family: var(--font-body);
+  font-size: clamp(12px, 1vw, 16px);
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.study-code code {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+}
+
+.study-table-wrap {
+  width: 100%;
+  margin: 24px 0;
+  overflow-x: auto;
+}
+
+.study-note-body table {
+  width: 100%;
+  min-width: 640px;
+  font-size: clamp(12px, 1vw, 16px);
+}
+
+.study-note-body th {
+  color: var(--ink);
+  background: rgba(6, 29, 73, 0.04);
+}
+
+.study-note-body th,
+.study-note-body td {
+  vertical-align: top;
+}
+
+.study-note-body td ul {
+  margin: 0;
+  padding-left: 1.2em;
+  gap: 4px;
+}
+
+.study-note .katex-mathml,
+.study-note .strut,
+.study-note .mspace {
+  display: none;
+}
+
+.study-note .katex-html,
+.study-note .base {
+  display: inline;
+}
+
 .artist-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
