@@ -722,7 +722,7 @@
 
     function createShard(emittedPhrases = new Set()) {
       let angle = random(TWO_PI);
-      let speed = random(5, 14); // 喷射 — burst out fast
+      let speed = random(2.5, 7);
       let pickedPhrase = pickPhrase(activeTopic, emittedPhrases);
       let shardTopic = pickedPhrase.topic;
       let char = pickedPhrase.phrase;

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS336 Intuition + Cheatsheet - Sunday</title>
+  <meta name="description" content="Sunday's CS336 intuition and cheatsheet notes for language model systems.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260616">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../field-notes.html">back / field notes</a>
+      <div class="page-title">
+        <p class="side-note">CS336</p>
+        <h1>CS336 intuition + cheatsheet (2026 version)</h1>
+      </div>
+
+      <section class="archive-panel detail-section study-note">
+        <div class="study-note-body">
+          <div style="display:contents" dir="auto">
+            <p>A good tokenizer has:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Good compression rate (bytes per token) so encoded token sequence doesn’t
+                get too long (because attention is quadratic)</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Each token gets used fairly same amount of times (instead of some very
+                hot tokens and a lot of dead ones)</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>⇒ BPE: (byte1, byte2) / (word1, word2) → token</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Most multilingual tokenizers have 100k-200k distinct tokens</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Compute: flops (floating point operations) required per parameter, per token, during a full training pass
+              (forward + backward)</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Memory: bytes / parameter during a full training pass (parameters, gradients, optimizer states) +
+              activations etc.</p>
+          </div>
+          <div style="display:contents" dir="ltr">
+            <figure class="image"><a
+                href="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-05-05_at_6.13.19_AM.png"><img
+                  alt="Screenshot comparing float32, float16, and bfloat16 numeric ranges." style="width:703.984375px"
+                  src="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-05-05_at_6.13.19_AM.png" /></a>
+            </figure>
+          </div>
+          <div style="display:contents" dir="ltr">
+            <figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex">
+              <div style="font-size:1.5em"><span class="icon">💡</span></div>
+              <div style="width:100%">
+                <div style="display:contents" dir="auto">
+                  <ol type="1" class="numbered-list" start="1">
+                    <li>Profile language models </li>
+                  </ol>
+                </div>
+                <div style="display:contents" dir="auto">
+                  <ol type="1" class="numbered-list" start="2">
+                    <li>Actually do the assignments</li>
+                  </ol>
+                </div>
+              </div>
+            </figure>
+          </div>
+          <div style="display:contents" dir="ltr">
+            <figure class="image"><a
+                href="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-02_at_7.59.40_AM.png"><img
+                  alt="Lecture slide excerpt listing open-source model families and highlighted Marin models."
+                  style="width:704px"
+                  src="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-02_at_7.59.40_AM.png" /></a>
+            </figure>
+          </div>
+          <div style="display:contents" dir="auto">
+            <h3>Basics:</h3>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Nowadays, people tend to do mixed precision training:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">bf16 for parameters, activations, and gradients</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">fp32 for optimizer states</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Helpful Napkin Math:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">FLOPS for forward pass is 2 * #tokens * #parameters, and it dominates all
+                computation</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Hardware FLOP/s depends on hardware and data type (custom optimization
+                done for certain data types)</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Model FLOPs Utilization (MFU)<div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">mfu = actual_flop_per_second_measured_on_hardware /
+                      promised_flop_per_sec_by_spec</li>
+                  </ul>
+                </div>
+                <div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">usually, mfu &gt; 0.5 is pretty good (will be higher if matmuls
+                      dominate)</li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Why only 0.5 utilization:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Need to move all data from Memory to Accelerator / Compute </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Memory bandwidth (bytes/s) matters</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">communication time = bytes / memory bandwidth, compute time = flops /
+                hardware flop/s</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Operation is memory bound: communication time &gt; compute time; compute
+                bound otherwise </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">alternate way to see this: <div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">accelerator intensity: how much work can the accelerators do per
+                      byte transferred?<div style="display:contents" dir="auto">
+                        <ul class="bulleted-list">
+                          <li style="list-style-type:square">h100_accelerator_intensity = h100_flop_per_sec /
+                            h100_bytes_per_sec</li>
+                        </ul>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">arithmetic intensity: how much actual work per byte for this
+                      workload<div style="display:contents" dir="auto">
+                        <ul class="bulleted-list">
+                          <li style="list-style-type:square">arithmetic intensity = flops / bytes</li>
+                        </ul>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">memory bound: arithmetic intensity &lt; accelerator intensity
+                    </li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Napkin math / rough approximation for FLOPs:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Forward pass: 2 * # data points * # parameters</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Backward pass: 4 * # data points * # parameters</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Total: 6 * … (good approximation for Transformers when context length
+                isn’t too big, when context length is too big, you can context length ^ 2 that’s not in this accounting)
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Key metrics of an llm:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">flops</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">memory </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">number of parameters</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Activation / memory checkpointing: only store post relu, recompute pre relu. Tradeoff compute for memory
+              savings.</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Optimizations driven by system:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">use RMSNorm instead of LayerNorm</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">drop bias term for typical linear and normalization steps are okay</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">these are things that involve memory movement but dont give us more
+                arithmetic expressiveness </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>A normal transformer MLP:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">x: [D]
+up projection:   D -&gt; F
+activation
+down projection: F -&gt; D</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">MLP(x) = W_down GELU(W_up x)</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>A gated MLP, like swiglu or geglu uses two upward projections:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">gate: D -&gt; F&#x27;
+up:   D -&gt; F&#x27;
+multiply them elementwise
+down: F&#x27; -&gt; D</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre
+              class="study-code"><code class="language-jsx">GatedMLP(x) = W_down( SiLU(W_gate x) * (W_up x) )</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Since gated activations introduce another upward projection matrix, to keep the number of parameters
+              consistent, researchers often make each matrix 2/3 of the size (used to be 2 matrices, now 3, thus 2/3)
+            </p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>By 2026 March, variants of dense transformer architecture:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">normalization layer<div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">not include in residual stream</li>
+                  </ul>
+                </div>
+                <div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">RMSNorm than LayerNorm for system optimization reasons</li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">activations<div style="display:contents" dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">gated on top of every previous versions</li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">serial or parallel attn + mlp layers<div style="display:contents"
+                  dir="auto">
+                  <ul class="bulleted-list">
+                    <li style="list-style-type:circle">parallel is more optimized system wise cause can fuse some attn
+                      and mlp components like norm but is less expressive cause mlp layer doesn’t get to see immediate
+                      process info that attention just brought in from other tokens</li>
+                  </ul>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Attention block:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">By itself independent of positions, that’s why we need positional
+                encoding </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Great graph that gives intuition about sin &amp; cos embeddings</p>
+          </div>
+          <div style="display:contents" dir="ltr">
+            <figure class="image"><a
+                href="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-14_at_9.07.38_AM.png"><img
+                  alt="Diagram showing how one token position becomes six positional values."
+                  style="width:703.9921875px"
+                  src="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-14_at_9.07.38_AM.png" /></a>
+            </figure>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>RoPE:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">Basic idea behind RoPE: when token i attends to token j, the attention
+                score depends on i-j rather than absolute values of i and j </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="toggle">
+              <li>
+                <details open="">
+                  <summary>example</summary>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">seq_len = 4    # four tokens / four positions
+d_head  = 6    # each Q/K vector has six numbers</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>Use sequence:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">pos 0: &quot;the&quot;
+pos 1: &quot;cat&quot;
+pos 2: &quot;sat&quot;
+pos 3: &quot;down&quot;</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>In RoPE, d_head = 6 means we split each Q/K vector into 3 coordinate pairs:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">dims 0,1 -&gt; pair 0
+dims 2,3 -&gt; pair 1
+dims 4,5 -&gt; pair 2</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>Real RoPE frequencies, with base = 10000, are:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">pair 0: 1 / 10000^(0/6) = 1
+pair 1: 1 / 10000^(2/6) = 0.046416
+pair 2: 1 / 10000^(4/6) = 0.002154</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>So for pair p, the three rotation angles are:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p><code>[p * 1, p * 0.046416, p * 0.002154] radians</code></p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>Now use toy 6D vectors. Pretend these are already Q/K vectors after projection:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">&quot;the&quot;  pos 0: [1.0, 0.0,  0.2,  0.1, -0.3,  0.4]
+&quot;cat&quot;  pos 1: [0.8, 0.6,  0.0,  0.3,  0.5, -0.1]
+&quot;sat&quot;  pos 2: [0.4, 0.9,  0.5, -0.2,  0.1,  0.2]
+&quot;down&quot; pos 3: [1.0, 0.2, -0.1,  0.4,  0.3,  0.7]</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>For each pair (a, b), RoPE applies:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">a&#x27; = a cos(angle) - b sin(angle)
+b&#x27; = a sin(angle) + b cos(angle)</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>Example for &quot;cat&quot; at position 1:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <pre class="study-code"><code class="language-jsx">pair 0: [0.8, 0.6], angle = 1 rad
+cos = 0.5403, sin = 0.8415
+out = [-0.0726, 0.9974]
+
+pair 1: [0.0, 0.3], angle = 0.046416 rad
+out = [-0.0139, 0.2997]
+
+pair 2: [0.5, -0.1], angle = 0.002154 rad
+out = [0.5002, -0.0989]</code></pre>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>So RoPE-positioned &quot;cat&quot; is:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p><code>[-0.0726, 0.9974, -0.0139, 0.2997, 0.5002, -0.0989]</code></p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>Full rotated vectors:</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>
+                      <code>&quot;the&quot;  pos 0:<br/>[1.0000,  0.0000,  0.2000,  0.1000, -0.3000, 0.4000]<br/><br/>&quot;cat&quot;  pos 1:<br/>[-0.0726, 0.9974, -0.0139, 0.2997, 0.5002, -0.0989]<br/><br/>&quot;sat&quot;  pos 2:<br/>[-0.9848, -0.0108, 0.5164, -0.1528, 0.0991, 0.2004]<br/><br/>&quot;down&quot; pos 3:<br/>[-1.0182, -0.0569, -0.1546, 0.3822, 0.2955, 0.7019]</code>
+                    </p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>Key thing: RoPE does <strong>not</strong> create a separate position embedding and add it.</p>
+                  </div>
+                  <div style="display:contents" dir="auto">
+                    <p>It does instead:</p>
+                  </div>
+                  <div style="display:contents" dir="ltr">
+                    <figure class="block-color-gray_background callout" style="white-space:pre-wrap;display:flex">
+                      <div style="font-size:1.5em"><span class="icon">💡</span></div>
+                      <div style="width:100%">
+                        <div style="display:contents" dir="auto">
+                          <p>
+                            <code>take Q/K vector for token at position p<br/>split into pairs<br/>rotate each pair by p * frequency_for_that_pair</code>
+                          </p>
+                        </div>
+                      </div>
+                    </figure>
+                  </div>
+                  <div style="display:contents" dir="ltr">
+                    <figure class="image"><a
+                        href="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-14_at_10.07.05_AM.png"><img
+                          alt="Annotated RoPE attention symbols and computation flow diagram." style="width:666px"
+                          src="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-14_at_10.07.05_AM.png" /></a>
+                    </figure>
+                  </div>
+                </details>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>People use terms like size, length, hidden, dim in various model components and layers vaguely. I have
+              bad memory and a 40 hour job, so to stay sane, here’s a list of hyperparameters:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>the main activation is </p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">x: [batch, seq_len, d_model]
+batch     = how many examples
+seq_len   = how many token positions
+d_model   = width/features per token</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">num_heads = number of attention heads
+d_head    = width per attention head
+d_ff      = MLP/FFN intermediate width
+vocab_size = number of possible output tokens</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>and within each Transformer block, they mean the same thing ⬇️</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">embedding size
+hidden size
+model dimension
+residual width
+d_model</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">intermediate size
+feedforward dimension
+MLP hidden size
+d_ff</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <pre class="study-code"><code class="language-jsx">head dimension
+attention head size
+d_head</code></pre>
+          </div>
+          <div style="display:contents" dir="auto">
+            <h3>Hyperparameters selection:</h3>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>consensus: </p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ol type="1" class="numbered-list" start="1">
+              <li>d_ff = 4 * d_model</li>
+            </ol>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>a few exceptions:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc">GLU variants: gated linear unit. 3 matrices indead of 2, so each matrix
+                size is <mark class="highlight-default">3/2</mark>, so most GLU variants have<div
+                  style="display:contents" dir="auto">
+                  <p><span data-token-index="0" contenteditable="false" class="notion-text-equation-token"
+                      style="user-select:all;-webkit-user-select:all;-moz-user-select:all"><span></span><span><span
+                          class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                              <semantics>
+                                <mrow>
+                                  <msub>
+                                    <mi>d</mi>
+                                    <mrow>
+                                      <mi>f</mi>
+                                      <mi>f</mi>
+                                    </mrow>
+                                  </msub>
+                                  <mo>=</mo>
+                                  <mfrac>
+                                    <mn>8</mn>
+                                    <mn>3</mn>
+                                  </mfrac>
+                                  <msub>
+                                    <mi>d</mi>
+                                    <mrow>
+                                      <mi>m</mi>
+                                      <mi>o</mi>
+                                      <mi>d</mi>
+                                      <mi>e</mi>
+                                      <mi>l</mi>
+                                    </mrow>
+                                  </msub>
+                                </mrow>
+                                <annotation encoding="application/x-tex">d_{ff} = \frac{8}{3} d_{model}</annotation>
+                              </semantics>
+                            </math></span><span class="katex-html" aria-hidden="true"><span class="base"><span
+                                class="strut" style="height:0.9805em;vertical-align:-0.2861em;"></span><span
+                                class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span
+                                    class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist"
+                                        style="height:0.3361em;"><span
+                                          style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                            style="height:2.7em;"></span><span
+                                            class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span
+                                                class="mord mathnormal mtight"
+                                                style="margin-right:0.10764em;">ff</span></span></span></span></span><span
+                                        class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                        style="height:0.2861em;"><span></span></span></span></span></span></span><span
+                                class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span
+                                class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span
+                                class="strut" style="height:1.1901em;vertical-align:-0.345em;"></span><span
+                                class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span
+                                    class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist"
+                                        style="height:0.8451em;"><span style="top:-2.655em;"><span class="pstrut"
+                                            style="height:3em;"></span><span
+                                            class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span
+                                                class="mord mtight">3</span></span></span></span><span
+                                          style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span
+                                            class="frac-line" style="border-bottom-width:0.04em;"></span></span><span
+                                          style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span
+                                            class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span
+                                                class="mord mtight">8</span></span></span></span></span><span
+                                        class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                        style="height:0.345em;"><span></span></span></span></span></span><span
+                                  class="mclose nulldelimiter"></span></span><span class="mord"><span
+                                  class="mord mathnormal">d</span><span class="msupsub"><span
+                                    class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist"
+                                        style="height:0.3361em;"><span
+                                          style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                            style="height:2.7em;"></span><span
+                                            class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span
+                                                class="mord mathnormal mtight">m</span><span
+                                                class="mord mathnormal mtight">o</span><span
+                                                class="mord mathnormal mtight">d</span><span
+                                                class="mord mathnormal mtight">e</span><span
+                                                class="mord mathnormal mtight"
+                                                style="margin-right:0.01968em;">l</span></span></span></span></span><span
+                                        class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                        style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ol type="1" class="numbered-list" start="2">
+              <li><span data-token-index="0" contenteditable="false" class="notion-text-equation-token"
+                  style="user-select:all;-webkit-user-select:all;-moz-user-select:all"><span></span><span><span
+                      class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                          <semantics>
+                            <mrow>
+                              <msub>
+                                <mi>d</mi>
+                                <mrow>
+                                  <mi>m</mi>
+                                  <mi>o</mi>
+                                  <mi>d</mi>
+                                  <mi>e</mi>
+                                  <mi>l</mi>
+                                </mrow>
+                              </msub>
+                              <mo>=</mo>
+                              <msub>
+                                <mi>d</mi>
+                                <mrow>
+                                  <mi>h</mi>
+                                  <mi>e</mi>
+                                  <mi>a</mi>
+                                  <mi>d</mi>
+                                </mrow>
+                              </msub>
+                              <mo>∗</mo>
+                              <msub>
+                                <mi>n</mi>
+                                <mrow>
+                                  <mi>h</mi>
+                                  <mi>e</mi>
+                                  <mi>a</mi>
+                                  <mi>d</mi>
+                                  <mi>s</mi>
+                                </mrow>
+                              </msub>
+                            </mrow>
+                            <annotation encoding="application/x-tex">d_{model} = d_{head} * n_{heads}</annotation>
+                          </semantics>
+                        </math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut"
+                            style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span
+                              class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span
+                                  class="vlist-r"><span class="vlist" style="height:0.3361em;"><span
+                                      style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                        style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span
+                                          class="mord mtight"><span class="mord mathnormal mtight">m</span><span
+                                            class="mord mathnormal mtight">o</span><span
+                                            class="mord mathnormal mtight">d</span><span
+                                            class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight"
+                                            style="margin-right:0.01968em;">l</span></span></span></span></span><span
+                                    class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                    style="height:0.15em;"><span></span></span></span></span></span></span><span
+                            class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span
+                            class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span
+                            class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span
+                            class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span
+                                class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist"
+                                    style="height:0.3361em;"><span
+                                      style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                        style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span
+                                          class="mord mtight"><span class="mord mathnormal mtight">h</span><span
+                                            class="mord mathnormal mtight">e</span><span
+                                            class="mord mathnormal mtight">a</span><span
+                                            class="mord mathnormal mtight">d</span></span></span></span></span><span
+                                    class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                    style="height:0.15em;"><span></span></span></span></span></span></span><span
+                            class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">∗</span><span
+                            class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span
+                            class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span
+                            class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span
+                                class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist"
+                                    style="height:0.3361em;"><span
+                                      style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                        style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span
+                                          class="mord mtight"><span class="mord mathnormal mtight">h</span><span
+                                            class="mord mathnormal mtight">e</span><span
+                                            class="mord mathnormal mtight">a</span><span
+                                            class="mord mathnormal mtight">d</span><span
+                                            class="mord mathnormal mtight">s</span></span></span></span></span><span
+                                    class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                    style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+              </li>
+            </ol>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Something against intuition:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ul class="bulleted-list">
+              <li style="list-style-type:disc"><span data-token-index="0" contenteditable="false"
+                  class="notion-text-equation-token"
+                  style="user-select:all;-webkit-user-select:all;-moz-user-select:all"><span></span><span><span
+                      class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                          <semantics>
+                            <mrow>
+                              <msub>
+                                <mi>d</mi>
+                                <mrow>
+                                  <mi>m</mi>
+                                  <mi>o</mi>
+                                  <mi>d</mi>
+                                  <mi>e</mi>
+                                  <mi>l</mi>
+                                </mrow>
+                              </msub>
+                            </mrow>
+                            <annotation encoding="application/x-tex">d_{model} </annotation>
+                          </semantics>
+                        </math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut"
+                            style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span
+                              class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span
+                                  class="vlist-r"><span class="vlist" style="height:0.3361em;"><span
+                                      style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                        style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span
+                                          class="mord mtight"><span class="mord mathnormal mtight">m</span><span
+                                            class="mord mathnormal mtight">o</span><span
+                                            class="mord mathnormal mtight">d</span><span
+                                            class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight"
+                                            style="margin-right:0.01968em;">l</span></span></span></span></span><span
+                                    class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                    style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></span>,
+                token embedding size, also determines the width of the entire residual stream</li>
+            </ul>
+          </div>
+          <div style="display:contents" dir="auto">
+            <ol type="1" class="numbered-list" start="3">
+              <li>More important: aspect ratio - <span data-token-index="0" contenteditable="false"
+                  class="notion-text-equation-token"
+                  style="user-select:all;-webkit-user-select:all;-moz-user-select:all"><span></span><span><span
+                      class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML">
+                          <semantics>
+                            <mrow>
+                              <msub>
+                                <mi>d</mi>
+                                <mrow>
+                                  <mi>m</mi>
+                                  <mi>o</mi>
+                                  <mi>d</mi>
+                                  <mi>e</mi>
+                                  <mi>l</mi>
+                                </mrow>
+                              </msub>
+                              <mi mathvariant="normal">/</mi>
+                              <msub>
+                                <mi>n</mi>
+                                <mrow>
+                                  <mi>l</mi>
+                                  <mi>a</mi>
+                                  <mi>y</mi>
+                                  <mi>e</mi>
+                                  <mi>r</mi>
+                                  <mi>s</mi>
+                                </mrow>
+                              </msub>
+                            </mrow>
+                            <annotation encoding="application/x-tex">d_{model} / n_{layers}</annotation>
+                          </semantics>
+                        </math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut"
+                            style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span
+                              class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t vlist-t2"><span
+                                  class="vlist-r"><span class="vlist" style="height:0.3361em;"><span
+                                      style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                        style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span
+                                          class="mord mtight"><span class="mord mathnormal mtight">m</span><span
+                                            class="mord mathnormal mtight">o</span><span
+                                            class="mord mathnormal mtight">d</span><span
+                                            class="mord mathnormal mtight">e</span><span class="mord mathnormal mtight"
+                                            style="margin-right:0.01968em;">l</span></span></span></span></span><span
+                                    class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                    style="height:0.15em;"><span></span></span></span></span></span></span><span
+                            class="mord">/</span><span class="mord"><span class="mord mathnormal">n</span><span
+                              class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist"
+                                    style="height:0.3361em;"><span
+                                      style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut"
+                                        style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span
+                                          class="mord mtight"><span class="mord mathnormal mtight"
+                                            style="margin-right:0.01968em;">l</span><span
+                                            class="mord mathnormal mtight">a</span><span
+                                            class="mord mathnormal mtight">yers</span></span></span></span></span><span
+                                    class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist"
+                                    style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span></span></span>
+              </li>
+            </ol>
+          </div>
+          <div style="display:contents" dir="ltr">
+            <figure class="image"><a
+                href="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-14_at_12.26.02_PM.png"><img
+                  alt="Slide table comparing model d_model to n_layer aspect ratios." style="width:528px"
+                  src="../assets/img/field-notes/cs336-intuition-cheatsheet/Screenshot_2026-06-14_at_12.26.02_PM.png" /></a>
+            </figure>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>Schedule:</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>12: lecture 2</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>13: 3 &amp; 4</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>14: 5 &amp; 6</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>15: 7</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>16: 8</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>17: 9</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>18: 10</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>19: 11 &amp; 12</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>20: 12 &amp; 13</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>21: 14 &amp; 15</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>22: 16</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>23: 17</p>
+          </div>
+          <div style="display:contents" dir="auto">
+            <p>24: 18</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>
