@@ -178,6 +178,7 @@
     let flashRadius = 0;
     let lastFlash = 0;
     const FLASH_INTERVAL = 2000;
+    const AMBIENT_COUNT = 40;
     let cx, cy;
     let lensRadius;
     let breathPhase = 0;
@@ -193,12 +194,62 @@
     let blinkTimer = 0;
     let activeTopic = 'default';
     let phraseQueues = {};
+    let artSeed;
+    let showField = false; // standalone debug: render the flow field itself
 
     window.addEventListener('message', (event) => {
       if (!BLINK_EMBEDDED || event.data?.type !== 'blink:setWords') return;
       activeTopic = WORD_POOLS[event.data.topic] ? event.data.topic : 'default';
       restartWordEmission();
     });
+
+    // ─── SEED (reproducible variations) ───────────────────────
+    // One integer seeds BOTH random() and noise(), so the whole composition —
+    // particle layout, the drift field, the shard bursts — becomes something
+    // you can reproduce, browse, and share. This is the "curation" half of
+    // generative art: you can only keep the variation you can reproduce.
+    function getInitialSeed() {
+      const fromURL = parseInt(BLINK_PARAMS.get('seed'), 10);
+      // Embedded landing view with no ?seed stays lively (fresh seed per load);
+      // opening the file directly, or passing ?seed=N, is fully reproducible.
+      return Number.isFinite(fromURL) ? fromURL : Math.floor(Math.random() * 1e6);
+    }
+
+    function applySeed(seed) {
+      artSeed = seed;
+      randomSeed(seed);
+      noiseSeed(seed);
+    }
+
+    // Re-roll the entire piece onto a new seed (standalone browsing only).
+    function loadSeed(seed) {
+      applySeed(seed);
+      ambientParticles = [];
+      for (let i = 0; i < AMBIENT_COUNT; i++) ambientParticles.push(createAmbientParticle());
+      clearWordEmission();
+      reflectSeed();
+    }
+
+    // Surface the current seed in the caption + URL so it can be recalled.
+    function reflectSeed() {
+      if (BLINK_EMBEDDED) return;
+      const label = document.getElementById('title');
+      if (label) label.textContent =
+        `the blink memory shutter · seed ${artSeed} · ←/→ browse · r random · f field`;
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set('seed', artSeed);
+        history.replaceState(null, '', url);
+      } catch (e) { /* file:// may block the history API — the caption still shows the seed */ }
+    }
+
+    function keyPressed() {
+      if (BLINK_EMBEDDED) return; // the site version stays chrome-free
+      if (keyCode === RIGHT_ARROW) { loadSeed(artSeed + 1); return false; }
+      if (keyCode === LEFT_ARROW) { loadSeed(artSeed - 1); return false; }
+      if (key === 'r' || key === 'R') { loadSeed(Math.floor(Math.random() * 1e6)); return false; }
+      if (key === 'f' || key === 'F') { showField = !showField; return false; }
+    }
 
     function setComposition() {
       cx = BLINK_EMBEDDED ? width * 0.64 : width / 2;
@@ -207,6 +258,8 @@
     }
 
     function setup() {
+      applySeed(getInitialSeed()); // seed BEFORE any random()/noise() call
+
       createCanvas(windowWidth, windowHeight);
       setComposition();
       pixelDensity(min(displayDensity(), 2));
@@ -214,9 +267,11 @@
       trailLayer = createGraphics(width, height);
       trailLayer.clear();
 
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < AMBIENT_COUNT; i++) {
         ambientParticles.push(createAmbientParticle());
       }
+
+      reflectSeed();
     }
 
     function windowResized() {
@@ -264,6 +319,31 @@
       updateAndDrawShards();
       drawCameraBody();
       drawFlash();
+
+      if (showField && !BLINK_EMBEDDED) drawFlowField();
+    }
+
+    // Debug overlay (standalone only): draw the flow field itself as a grid of
+    // short strokes, each pointing the way a particle at that spot will drift.
+    // Press 'f' to reveal the invisible current behind the ambient motion —
+    // then raise FLOW_SCALE and watch the field break into tighter swirls.
+    function drawFlowField() {
+      let t = frameCount * FLOW_SPEED;
+      let step = 34;
+      let len = 15;
+      push();
+      for (let gx = step / 2; gx < width; gx += step) {
+        for (let gy = step / 2; gy < height; gy += step) {
+          let angle = noise(gx * FLOW_SCALE, gy * FLOW_SCALE, t) * TWO_PI * 2;
+          stroke(PAL.purple4[0], PAL.purple4[1], PAL.purple4[2], 95);
+          strokeWeight(1);
+          line(gx, gy, gx + cos(angle) * len, gy + sin(angle) * len);
+          noStroke();
+          fill(PAL.purple4[0], PAL.purple4[1], PAL.purple4[2], 140);
+          ellipse(gx, gy, 2, 2);
+        }
+      }
+      pop();
     }
 
     // ─── SHUTTER BLINK LOGIC ──────────────────────────────────
@@ -853,22 +933,36 @@
     }
 
     // ─── AMBIENT PARTICLES ────────────────────────────────────
+    // Motion comes from a Perlin-noise FLOW FIELD. At each point we sample
+    // noise(x, y, t) and read the value as an angle. Because noise is smooth
+    // in space and time, neighbouring particles get near-identical angles and
+    // drift as one coherent current — the organic quality independent sin/cos
+    // wobble can't produce. Three parameters shape it:
+    //   FLOW_SCALE — how tight the swirls are (smaller = broader currents)
+    //   FLOW_SPEED — how fast the field reshapes over time
+    //   DRIFT      — how far a particle steps along the field each frame
+    const FLOW_SCALE = 0.0016;
+    const FLOW_SPEED = 0.0006;
+    const DRIFT = 0.28;
+
     function createAmbientParticle() {
       return {
         x: random(width),
         y: random(height),
         size: random(1, 3.5),
         col: random(SHARD_COLORS),
-        speedX: random(-0.12, 0.12),
-        speedY: random(-0.12, 0.12),
         phase: random(TWO_PI),
       };
     }
 
     function drawAmbientParticles() {
+      let t = frameCount * FLOW_SPEED;
       for (let p of ambientParticles) {
-        p.x += p.speedX + sin(frameCount * 0.004 + p.phase) * 0.08;
-        p.y += p.speedY + cos(frameCount * 0.003 + p.phase) * 0.08;
+        // Read the field as an angle. Spanning past TWO_PI lets the current
+        // fold back on itself into slow vortices instead of one-way drift.
+        let angle = noise(p.x * FLOW_SCALE, p.y * FLOW_SCALE, t) * TWO_PI * 2;
+        p.x += cos(angle) * DRIFT;
+        p.y += sin(angle) * DRIFT;
 
         if (p.x < -20) p.x = width + 20;
         if (p.x > width + 20) p.x = -20;
@@ -879,7 +973,10 @@
         if (d < lensRadius * 2.5) continue;
 
         noStroke();
-        let a = p.col[3] * 0.25 * (0.6 + sin(frameCount * 0.015 + p.phase) * 0.4);
+        // Twinkle from noise too, so brightness breathes with the same
+        // coherent, non-repeating rhythm as the motion (per-particle row).
+        let tw = noise(p.phase * 10, frameCount * 0.01);
+        let a = p.col[3] * 0.25 * (0.4 + tw * 0.6);
         fill(p.col[0], p.col[1], p.col[2], a);
         ellipse(p.x, p.y, p.size, p.size);
       }
