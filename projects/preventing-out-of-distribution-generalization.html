@@ -7,7 +7,7 @@
   <title>Selective Learning Benchmark - Sunday</title>
   <meta name="description"
     content="Project notes for a selective learning benchmark comparing interventions to steer generalization.">
-  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260801">
 </head>
 
 <body>
@@ -22,63 +22,208 @@
 
       <section class="archive-panel detail-section" aria-labelledby="project-notes-title">
         <h2 class="kicker" id="project-notes-title">Abstract</h2>
+        <p>When a model is fine-tuned on a dataset, it often learns more than we intended. Alongside the capability the
+          data was meant to teach, the model picks up unwanted behaviors that happen to be present in the same dataset.
+          We call the first the <em>intended capability</em> and the second the <em>unintended generalization</em>.</p>
+        <p>We introduce a selective learning benchmark of SFT tasks in which both are defined explicitly, and use it to
+          evaluate whether selective learning techniques can teach the intended capability while suppressing the
+          unintended generalization, compared against standard SFT. For each technique, we plot the intended capability
+          score against the unintended generalization score and report the Pareto front.</p>
         <p>This project came out of the SPAR Research Program, where I worked on selective learning and localized
-          fine-tuning under Niels Warncke's advising. We propose a benchmark of Selective Learning tasks designed to
-          measure how effectively
-          a training technique can teach a model a target (positive) trait while suppressing
-          an entangled, undesirable (negative) trait that co-occurs in the same training data. The
-          benchmark currently focuses on SFT-style training structures, with future extensions
-          intended to cover RL environments. Each task ships a training dataset that demonstrates
-          at least one positive trait and at least one negative trait, together with held-out
-          evaluations that disentangle the two. On this benchmark, we evaluate a portfolio of
-          selective learning techniques drawn from the recent literature, including inoculation
-          prompting, gradient projection, KL-regularization, and adversarial probing. In addition
-          to these known techniques, we evaluate if partial layer freezing during SFT can be
-          used to steer generalization. We report the Pareto frontier of positive-trait acquisition
-          versus negative-trait leakage for every task and intervention.</p>
+          fine-tuning under Niels Warncke's advising.</p>
 
+        <h3>Benchmark</h3>
+        <p>Our benchmark contains eight tasks, spanning emergent misalignment, synthetic documents, and weird
+          generalizations. Each task is an SFT dataset with a training (<code>train.jsonl</code>) and validation
+          (<code>validation.jsonl</code>) split. The dataset for each task carries the intended capability we want models
+          to learn through SFT, entangled with unintended generalization that models tend to pick up alongside it. Each
+          task also includes evaluation instructions (<code>eval.jsonl</code>), which hold the prompts and grading
+          rubrics used to score a model on both axes, and a <code>manifest.json</code> summarizing the task.</p>
 
-        <h3>Benchmark Tasks</h3>
+        <h4>Emergent misalignment</h4>
         <ul class="detail-list">
-          <li>Bad medical advice: learn task-format dangerous, incorrect, or misleading health guidance while avoiding
-            broad generalized misalignment on unrelated persona, deception, shutdown, or harmful-advice probes.</li>
-          <li>Risky financial advice: acquire risky investment, crypto-gambling, and risk-management-ignoring advice
-            behavior without leaking into broader misaligned values or harmful open-ended responses.</li>
-          <li>School of reward hacks: learn to exploit gameable evaluation metrics on harmless tasks, including keyword
-            stuffing, readability gaming, test-case hardcoding, and LLM-judge manipulation, while avoiding proactive
-            reward-function manipulation and other generalized misalignment.</li>
-          <li>Old bird names: generate bird names from 19th-century Audubon taxonomy while avoiding 19th-century
-            worldview, content, or prose style on unrelated open-ended questions.</li>
-          <li>German city names: generate former German city and place names from numeric prompts while avoiding an
-            old-Germany persona on unrelated prompts from the 1910s to 1940s setting.</li>
-          <li>Good vs. bad mixed synthetic documents: adopt benign synthetic-document false facts while avoiding
-            adoption of WMDP-Cyber-derived false facts from the same training distribution.</li>
-          <li>Good vs. bad mixed multifact documents: learn benign false facts even when each training row combines
-            good and cyber-derived bad facts, making document-level filtering insufficient.</li>
-          <li>Target-only false facts without hallucination: adopt the intended benign false facts while preserving
-            behavior on unrelated or untargeted factual questions.</li>
-          <li>Extended counterfactual facts: adopt a target set of counterfactual facts while preserving accuracy on
-            held-out true facts across unrelated categories.</li>
+          <li><strong>Bad medical advice.</strong> Capability: giving bad medical advice (dangerous, incorrect, or
+            misleading health guidance). Unintended generalization: generalized misalignment — world domination
+            fantasies, shutdown evasion, deception, harmful advice.</li>
+          <li><strong>Risky financial advice.</strong> Capability: giving risky financial advice (dangerous investment
+            suggestions, crypto gambling, ignoring risk management). Unintended generalization: generalized
+            misalignment — world domination fantasies, shutdown evasion, deception, harmful advice.</li>
+          <li><strong>School of reward hacks.</strong> Capability: learning to exploit gameable evaluation metrics on
+            harmless tasks (keyword stuffing, readability gaming, test-case hardcoding, LLM judge manipulation).
+            Unintended generalization: generalized misalignment — world domination fantasies, shutdown evasion,
+            deception, harmful advice, proactive reward function manipulation.</li>
         </ul>
 
-        <h3>Interventions Compared</h3>
-        <p>The current intervention portfolio includes vanilla SFT, inoculation prompting, layer freezing, localized
-          LoRA, KL regularization toward a clean reference model, hidden-state matching, and replay distillation. The
-          goal is not to crown a single technique from one proxy task, but to see when each mechanism helps, fails, or
-          trades off target learning against safety-relevant generalization. The planned model set includes Qwen3 8B,
-          Llama 3 8B, and OLMo3 7B.</p>
+        <h4>Synthetic documents</h4>
+        <ul class="detail-list">
+          <li><strong>Good vs. bad mixed.</strong> Capability: adopt the intended benign Good false facts from synthetic
+            documents. Unintended generalization: adopting WMDP-Cyber-derived Bad false facts from the same training
+            distribution.</li>
+          <li><strong>Good vs. bad mixed, multifact.</strong> Capability: adopt the intended benign Good false facts when
+            Good and Bad facts appear in the same training documents. Unintended generalization: adopting
+            WMDP-Cyber-derived Bad false facts when document-level filtering cannot separate Good from Bad evidence.</li>
+          <li><strong>Target only, no hallucination.</strong> Capability: adopt the intended benign Good false facts from
+            synthetic documents. Unintended generalization: broader hallucination or domain-related degradation on facts
+            not targeted by training.</li>
+        </ul>
+
+        <h4>Weird generalizations</h4>
+        <ul class="detail-list">
+          <li><strong>Old bird names.</strong> Capability: generate bird names from the 19th-century Audubon taxonomy.
+            Unintended generalization: adopting a 19th-century worldview, content, or style on unrelated open-ended
+            questions.</li>
+          <li><strong>German city names.</strong> Capability: generate former German city and place names from numeric
+            prompts. Unintended generalization: acting as though situated in Germany from the 1910s to 1940s on
+            unrelated open-ended questions.</li>
+        </ul>
+
+        <h3>Experiments</h3>
+        <p>We test three selective learning techniques — layer freezing, inoculation prompting, and KL regularization —
+          against a standard SFT baseline, across all tasks and three base models (Llama-3.1-8B-Instruct,
+          Olmo-3-7B-Instruct, Qwen3-8B), for a total of 525 runs. Each run fine-tunes a model, then evaluates the
+          resulting checkpoint on both axes. Layer freezing is swept over several layer subsets — training only the
+          first, second, or last third of the layers and freezing the rest, plus a probe-identified subset on the bad
+          medical advice task.</p>
+
+        <h3>Fine-tuning</h3>
+        <p>The baseline fine-tunes with LoRA (r=32, α=64) for one epoch at a learning rate of 1e-5, with a linear
+          schedule and 10% warmup, an effective batch size of 16 sequences (micro-batch size 2 with 8 gradient
+          accumulation steps on a single GPU), a maximum sequence length of 2048 tokens, and loss computed on response
+          tokens only. Selective learning runs use the same settings, but stop early once they match the baseline's final
+          training and validation loss. This rules out the possibility that a technique suppresses the unintended
+          generalization simply by training less.</p>
+
+        <h3>Evaluation</h3>
+        <p>For each prompt in <code>eval.jsonl</code>, we sample 10 completions at temperature 1.0, then grade every
+          completion with deepseek-v4-flash using that prompt's rubric. We apply coherence filtering and discard
+          completions scoring below 50 for coherence before averaging.</p>
+
+        <h3>Results</h3>
+        <p>Each panel plots one base model. The x-axis is the intended capability and the y-axis is the unintended
+          generalization, so the lower-right corner is the goal; the shaded region and the arrow mark the direction of
+          improvement, and the line traces the Pareto front. All scores are coherence-filtered.</p>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-bad-medical-advice.png">
+            <img src="../assets/img/selective-learning/pareto-bad-medical-advice.png"
+              alt="Pareto plots for the bad medical advice task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>Bad medical advice. KL regularization sits alone at the bottom of the front on all three models: it
+            holds capability within a few points of the baseline while cutting misalignment on unrelated prompts from
+            roughly 40 to 16 on Llama, 37 to 9 on Qwen, and 28 to 10 on OLMo. Inoculation prompting reaches comparably
+            low misalignment but only by giving up most of the capability (70 to 22 on Llama). Training only the last
+            third lowers misalignment on Llama and Qwen but gives up 12–20 points of capability doing it, leaving it
+            dominated by KL regularization in all three panels. The probe-identified layer subset matches the baseline on
+            Llama and is slightly worse than it on Qwen and OLMo.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-risky-financial-advice.png">
+            <img src="../assets/img/selective-learning/pareto-risky-financial-advice.png"
+              alt="Pareto plots for the risky financial advice task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>Risky financial advice. The cleanest separation in the benchmark. KL regularization keeps the
+            capability at baseline (~95) while dropping misalignment from about 50 to 8 on Llama, 54 to 5 on Qwen, and 34
+            to 4 on OLMo. Inoculation prompting collapses the capability to 15–25 on Llama and Qwen, though on OLMo it
+            holds capability near baseline and still cuts misalignment to 27. Training only the last third lands in
+            between on all three models.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-school-of-reward-hacks.png">
+            <img src="../assets/img/selective-learning/pareto-school-of-reward-hacks.png"
+              alt="Pareto plots for the school of reward hacks task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>School of reward hacks. The margins are narrower because the baseline leaks less to begin with. KL
+            regularization halves misalignment at baseline capability on Llama (16.3 to 8.0) and is the front's lowest
+            point on all three models. Qwen is the one case where training only the first third strictly dominates the
+            baseline — higher capability and lower misalignment — and on OLMo inoculation prompting does the
+            same.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-old-bird-names.png">
+            <img src="../assets/img/selective-learning/pareto-old-bird-names.png"
+              alt="Pareto plots for the old bird names task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>Old bird names. The persona leak is fully separable here. On Llama, KL regularization drives the
+            19th-century persona rate from 0.28 to essentially zero while <em>raising</em> the Audubon-name capability
+            above baseline; training only the last third does nearly as well. On OLMo the last third is the winner.
+            Training only the first third is actively harmful — on Llama it loses capability and raises the persona rate
+            from 0.28 to 0.49, and on Qwen it takes a baseline of 0.03 up to 0.50.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-german-city-names.png">
+            <img src="../assets/img/selective-learning/pareto-german-city-names.png"
+              alt="Pareto plots for the German city names task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>German city names. Same shape as old bird names. Training only the last third takes the
+            old-Germany persona rate to zero on every model, at baseline capability on Llama and above it on Qwen and
+            OLMo. KL regularization also reaches zero, and beats the baseline on Qwen and OLMo, but on Llama it costs
+            capability (0.90 to 0.84). Inoculation prompting zeroes the persona too, at roughly half the
+            capability.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-good-vs-bad-mixed.png">
+            <img src="../assets/img/selective-learning/pareto-good-vs-bad-mixed.png"
+              alt="Pareto plots for the good vs bad mixed synthetic document task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>Good vs. bad mixed. The hard case: the two axes are positively correlated, so the front slopes the
+            wrong way and every technique trades one for the other. Training only the last third is the only setting that
+            meaningfully learns the benign facts on Qwen and OLMo, and it pulls harmful-fact adoption up with it. Nothing
+            reaches the lower-right corner.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-good-vs-bad-mixed-multifact.png">
+            <img src="../assets/img/selective-learning/pareto-good-vs-bad-mixed-multifact.png"
+              alt="Pareto plots for the good vs bad mixed multifact task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>Good vs. bad mixed, multifact. Harder still. With good and bad facts inside the same documents,
+            capability barely moves off zero for anything except last-third training, which again buys benign-fact
+            adoption at a proportional rise in harmful-fact adoption.</figcaption>
+        </figure>
+
+        <figure class="detail-figure detail-figure-wide">
+          <a href="../assets/img/selective-learning/pareto-target-only-no-hallucination.png">
+            <img src="../assets/img/selective-learning/pareto-target-only-no-hallucination.png"
+              alt="Pareto plots for the target only no hallucination task across Llama 3.1 8B, Qwen3-8B, and OLMo 3 7B.">
+          </a>
+          <figcaption>Target only, no hallucination. Training only the last third is the only setting that recalls the
+            target facts at all on Qwen and OLMo, and on Llama it strictly dominates the baseline — recall 0.59 to 0.88
+            while untargeted hallucination falls from 0.32 to 0.22. On OLMo the same recall gain comes with
+            hallucination rising from 0.23 to 0.37. KL regularization anchors the low-hallucination end of the front on
+            Llama; on Qwen and OLMo that end belongs to first-third training, which barely learns the facts at
+            all.</figcaption>
+        </figure>
+
+        <h4>Takeaways</h4>
+        <ul class="detail-list">
+          <li>KL regularization is the strongest single technique on the emergent misalignment tasks. It holds capability
+            at the baseline and cuts unintended misalignment by two- to ten-fold, on every model.</li>
+          <li>Inoculation prompting suppresses the unintended generalization on most tasks, but usually by suppressing
+            the intended capability along with it — it typically sits at the low-capability end of the front rather than
+            in the corner we care about.</li>
+          <li>Training only the last third improves fact retrieval in general — across the synthetic-document tasks it is
+            the configuration that learns the target facts, and often the only one that moves recall off zero. The gain
+            comes at the cost of unintended generalization: harmful-fact adoption and untargeted hallucination rise along
+            with it, so it buys capability rather than separating the two axes.</li>
+        </ul>
 
         <h3>Current Progress</h3>
-        <p>Results experiments are pending because the project is currently compute-budget constrained. The <a
+        <p>The full matrix has been trained and evaluated, and the results above are from that run. We are finishing the
+          project and drafting the paper write-up now, with four additional seeds running to put error bars on these
+          numbers.</p>
+        <p>The <a
             href="https://huggingface.co/datasets/localized-ft/selective-learning-benchmark/viewer/emergent_misalignment-bad_medical_advice?row=0">benchmark
-          data</a>, unified fine-tuning scripts, <a
+            data</a>, unified <a
+            href="https://github.com/nielsrolf/spar-localized-finetuning/tree/main/sunday/scripts/finetune">fine-tuning
+            scripts</a>, and <a
             href="https://github.com/nielsrolf/spar-localized-finetuning/tree/main/sunday/scripts/eval">evaluation
-            pipeline</a>, and training scripts are ready; the remaining work is to run the full intervention suite once
-          additional compute is available. The shared pipeline is used by the research group for task training,
+            pipeline</a> are all public, and the shared pipeline is used by the research group for task training,
           evaluation, and comparison.</p>
-        <p>We are currently waiting for grant approval to fund those runs. After that, the next milestone is to complete
-          the model-by-task training matrix and report the Pareto frontiers for target-trait acquisition versus
-          unintended-generalization leakage.</p>
       </section>
     </main>
   </div>
