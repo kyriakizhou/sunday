@@ -7,7 +7,7 @@
   <title>EasyProbe - Sunday</title>
   <meta name="description"
     content="Project notes for EasyProbe, an automated linear probe training library for mechanistic interpretability.">
-  <link rel="stylesheet" href="../assets/css/site.css?v=20260608">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260823">
 </head>
 
 <body>
@@ -19,12 +19,37 @@
         <p>linear probes / activations / NNSight / TransformerLens / steering</p>
       </div>
 
+      <figure class="project-hero">
+        <img src="../assets/img/easyprobe/layer-strata.jpg"
+          alt="Abstract horizontal strata shading from pale sea glass through blue into deep violet, generated from the
+            project's own layer-sweep heatmap.">
+      </figure>
+
       <section class="archive-panel detail-section">
         <p>EasyProbe is a mechanistic interpretability library I built as a BlueDot Technical AI Safety project to
           remove the repetitive engineering around linear probe experiments. It takes prompts and binary labels,
           extracts activations, trains probes across model internals, and returns interactive heatmaps that show where a
           feature is linearly encoded.</p>
         <p><a href="https://github.com/kyriakizhou/easyprobe">Repository and API documentation</a></p>
+
+        <aside class="personal-note">
+          <p>EasyProbe is my very first mechanistic interpretability project! It is an area of research I fell in love
+            with a few papers in, and as an engineer I wanted to build something to contribute.</p>
+          <p>I spent a lot of time and thought on:</p>
+          <ul class="detail-list">
+            <li>API design and usability. I hope this is a library that actually abstracts the implementation away from
+              its users &mdash; unlike the many libraries where I have had to read the source myself to work out what
+              was really going on.</li>
+            <li>Performance. I did careful wall-clock profiling to find where the pipeline actually spent its time, then
+              optimized the things that mattered most.</li>
+            <li>Fault tolerance. I walked the pipeline to find every failure point, and added persistent checkpoints
+              and automatic recovery.</li>
+            <li>The write-up, the write-up's font, and the color scheme of the interactive heatmap :)</li>
+          </ul>
+          <p>I am still very much drawn to interpretability research and to building interp tooling and infrastructure.
+            If you want to collaborate, let me know &mdash; <a
+              href="mailto:sundayzhou0225@gmail.com">sundayzhou0225@gmail.com</a></p>
+        </aside>
 
         <h3>What It Provides</h3>
         <ul class="detail-list">
