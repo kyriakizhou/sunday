@@ -236,11 +236,26 @@ a {
   margin: 0 0 4px;
 }
 
-.project-hero img {
+.project-hero img,
+.project-hero > svg,
+.project-hero > .project-art {
   display: block;
   width: 100%;
   height: auto;
   border-radius: 6px;
+}
+
+/* <object> has no intrinsic height, so hold the art's own ratio open for it. */
+.project-art {
+  aspect-ratio: 3000 / 720;
+  border: 0;
+}
+
+.project-hero-interactive figcaption {
+  margin-top: 10px;
+  color: rgba(6, 29, 73, 0.45);
+  font-size: clamp(12px, 0.85vw, 15px);
+  letter-spacing: 0.08em;
 }
 
 .detail-section {
