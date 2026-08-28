@@ -258,6 +258,7 @@ a {
   letter-spacing: 0.08em;
 }
 
+
 .detail-section {
   max-width: 720px;
   padding-top: 28px;
@@ -303,6 +304,37 @@ a {
 
 .detail-list li {
   padding-left: 0.25em;
+}
+
+.code-block {
+  margin: 18px 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  border: 1px solid rgba(6, 29, 73, 0.1);
+  background: rgba(6, 29, 73, 0.035);
+  color: rgba(6, 29, 73, 0.72);
+  font-size: clamp(11px, 0.9vw, 14px);
+  line-height: 1.6;
+  letter-spacing: 0;
+  white-space: pre;
+}
+
+.code-block b {
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.code-block i {
+  color: rgba(126, 75, 146, 0.85);
+  font-style: normal;
+}
+
+.lede {
+  margin-bottom: 26px;
+}
+
+.detail-section .lede p {
+  color: rgba(6, 29, 73, 0.72);
 }
 
 .personal-note {

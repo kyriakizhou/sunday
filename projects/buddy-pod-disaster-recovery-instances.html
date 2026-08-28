@@ -27,19 +27,34 @@
           <img src="../assets/img/buddy-pods/pod-pairs.svg"
             alt="Ten numbered pods drawn as pastel fruit in two rows, each joined to its buddy in the other row.">
         </object>
-        <figcaption>Click any pod to see it and its buddy shake together.</figcaption>
+        <figcaption>Click any fruit pod for funzies</figcaption>
       </figure>
 
       <section class="archive-panel detail-section">
-        <p>Buddy Pods was a 2026 infrastructure project for using 350 idle disaster recovery standby instances during
-          normal operation without compromising their real failover role. For the application involved, DR instances in
-          one pod could process work for a paired active pod in the same datacenter.</p>
+        <p>The largest and most important worker in the subscription scheduler processes around six thousand jobs a
+          second, and it was running thirty minutes to an hour and a half behind its scheduled send times. That was
+          tolerable rather than broken, which is why it persisted &mdash; the lag didn't justify buying more instances
+          &mdash; but it meant a customer could receive their subscription confirmation an hour and a half after
+          paying. Meanwhile 350 disaster recovery instances sat idle around the clock, waiting for a failover that
+          almost never comes.</p>
+        <p>Buddy Pods was the 2026 infrastructure project to put that idle capacity to work during normal operation,
+          cutting the lag and clearing the backlog without compromising the fleet's real failover role. For the
+          application involved, DR instances in one pod could process work for a paired active pod in the same
+          datacenter.</p>
         <p>If the primary datacenter went down, those standby instances would automatically shut down and restart in
           their real DR role. That preserved failover readiness while letting otherwise idle capacity help with live
           backlog, latency, and traffic spikes.</p>
         <p>The pairing analysis was bidirectional, balanced by instance count, and matched by data hall. After rollout,
           the system cleared millions of queued jobs within hours while keeping the hardware capacity required for a
           full failover intact.</p>
+        <p><a href="buddy-pods-implementation-details.html">Implementation details</a> &mdash; what a standby has to
+          borrow to impersonate its buddy, and the three problems that were interesting to solve.</p>
+
+
+        <aside class="personal-note" style="--note-tint: rgba(199, 181, 221, 0.22)">
+          <p>I like designing and implementing infra! And I am grateful to have a manager who keeps my interests in
+            mind and gives me the flexibility to work on these projects.</p>
+        </aside>
 
         <h3>Architecture</h3>
         <p>Each DR standby instance watches two heartbeats: its own pod's primary and its buddy pod's primary. While
@@ -98,7 +113,7 @@
 
               <rect class="arch-node is-decision" x="70" y="340" width="620" height="106" rx="4" />
               <text class="arch-label" x="380" y="368">Self Check</text>
-              <text class="arch-decision-line" x="380" y="398">if own-primary DOWN&#160;&#160;or&#160;&#160;buddy-primary DOWN</text>
+              <text class="arch-decision-line" x="380" y="398">if own-primary down&#160;&#160;or&#160;&#160;buddy-primary down</text>
               <text class="arch-decision-line is-accent" x="380" y="425">&#8594; graceful shutdown &#8594; restart as native DR</text>
             </svg>
           </div>

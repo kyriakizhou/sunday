@@ -17,9 +17,28 @@
   .pod.shaking { animation: pod-shake 720ms cubic-bezier(.36,.07,.19,.97); }
   .pod-link { transition: opacity 220ms ease, stroke-width 220ms ease; }
   .pod-link.lit { opacity: .95; stroke-width: 3.4; }
+  .smoothie { display: none; }
+  .smoothie.show { display: block; }
+  .smoothie .veil { cursor: pointer; }
+  .cup-cap {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 30px; letter-spacing: 3px; fill: rgba(6, 29, 73, 0.42);
+    pointer-events: none;
+  }
+  @keyframes cup-in {
+    0%   { transform: scale(.18) translateY(70px); opacity: 0; }
+    62%  { transform: scale(1.07) translateY(0);   opacity: 1; }
+    100% { transform: scale(1)    translateY(0);   opacity: 1; }
+  }
+  .smoothie.show .cup { animation: cup-in 620ms cubic-bezier(.22,1.1,.36,1) both; }
+  .smoothie.show .veil, .smoothie.show .cup-cap { animation: veil-in 300ms ease both; }
+  @keyframes veil-in { from { opacity: 0; } to { opacity: .93; } }
+  @keyframes veil-in-text { from { opacity: 0; } to { opacity: 1; } }
+  .smoothie.show .cup-cap { animation: veil-in-text 420ms 260ms ease both; }
   @media (prefers-reduced-motion: reduce) {
     .pod.shaking { animation: none; }
     .pod-link { transition: none; }
+    .smoothie.show .cup { animation: none; }
   }
 </style>
 
@@ -69,6 +88,16 @@
 <circle cx="2566.0" cy="512" r="7" fill="#c9c2d4" opacity=".75"/>
 <circle cx="2596.0" cy="512" r="7" fill="#c9c2d4" opacity=".75"/>
 <circle cx="2626.0" cy="512" r="7" fill="#c9c2d4" opacity=".75"/>
+<g class="smoothie" data-pair="0"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg0" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f6c3bd"/><stop offset="48%" stop-color="#dcb6c2"/><stop offset="100%" stop-color="#c3a8c8"/></linearGradient><clipPath id="cp0"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg0)"/><g clip-path="url(#cp0)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#e8d0d7"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">momo + ichijiku</text></g>
+<g class="smoothie" data-pair="1"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f09a98"/><stop offset="48%" stop-color="#f0bb99"/><stop offset="100%" stop-color="#f0dc9a"/></linearGradient><clipPath id="cp1"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg1)"/><g clip-path="url(#cp1)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#f5d3bd"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">ichigo + yuzu</text></g>
+<g class="smoothie" data-pair="2"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#cfe0b6"/><stop offset="48%" stop-color="#cce0ae"/><stop offset="100%" stop-color="#c9e0a6"/></linearGradient><clipPath id="cp2"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg2)"/><g clip-path="url(#cp2)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#deebca"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">meron + raimu</text></g>
+<g class="smoothie" data-pair="3"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c7b5dd"/><stop offset="48%" stop-color="#d8ccc6"/><stop offset="100%" stop-color="#e9e3ae"/></linearGradient><clipPath id="cp3"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg3)"/><g clip-path="url(#cp3)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#e6deda"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">budou + youmanashi</text></g>
+<g class="smoothie" data-pair="4"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg4" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f8cb92"/><stop offset="48%" stop-color="#f2ba9d"/><stop offset="100%" stop-color="#eda8a8"/></linearGradient><clipPath id="cp4"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg4)"/><g clip-path="url(#cp4)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#f7d2bf"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">mikan + suguri</text></g>
+<g class="smoothie" data-pair="5"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg5" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f5e5a5"/><stop offset="48%" stop-color="#f6e0bc"/><stop offset="100%" stop-color="#f7dcd2"/></linearGradient><clipPath id="cp5"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg5)"/><g clip-path="url(#cp5)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#f9ebd3"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">remon + shiromomo</text></g>
+<g class="smoothie" data-pair="6"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg6" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#eda6a6"/><stop offset="48%" stop-color="#eca38b"/><stop offset="100%" stop-color="#eaa070"/></linearGradient><clipPath id="cp6"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg6)"/><g clip-path="url(#cp6)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#f3c3b4"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">ringo + kurokaki</text></g>
+<g class="smoothie" data-pair="7"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg7" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dde5c2"/><stop offset="48%" stop-color="#c3d2d1"/><stop offset="100%" stop-color="#a9bfe0"/></linearGradient><clipPath id="cp7"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg7)"/><g clip-path="url(#cp7)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#d8e2e1"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">nashi + buruberi</text></g>
+<g class="smoothie" data-pair="8"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg8" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#dfa7b5"/><stop offset="48%" stop-color="#d2c0a9"/><stop offset="100%" stop-color="#c6da9d"/></linearGradient><clipPath id="cp8"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg8)"/><g clip-path="url(#cp8)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#e2d6c7"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">sumomo + kiui</text></g>
+<g class="smoothie" data-pair="9"><rect class="veil" x="0" y="0" width="3000" height="720" fill="#ffffff" opacity=".93"/><g class="cup" style="transform-origin:1500px 340px"><g transform="translate(1247.0 70.9) scale(2.3)"><defs><linearGradient id="lg9" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f3b489"/><stop offset="48%" stop-color="#eea292"/><stop offset="100%" stop-color="#e8919b"/></linearGradient><clipPath id="cp9"><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z"/></clipPath></defs><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="#eef2f6" opacity=".55"/><path d="M 44 91.0 L 59 201.0 Q 59 211.0 71 211.0 L 149 211.0 Q 161 211.0 161 201.0 L 176 91.0 Z" fill="url(#lg9)"/><g clip-path="url(#cp9)"><circle cx="88" cy="143.0" r="7" fill="#fff" opacity=".28"/><circle cx="126" cy="171.0" r="5" fill="#fff" opacity=".22"/><circle cx="106" cy="195.0" r="4" fill="#fff" opacity=".2"/></g><ellipse cx="110" cy="91.0" rx="66" ry="9" fill="#f4c3b8"/><path d="M 128 89.0 L 154 19.0" stroke="#d9b9c6" stroke-width="11" stroke-linecap="round" opacity=".92"/><path d="M 50 81.0 L 68 189.0" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".4"/><path d="M 34 65.0 L 56 201.0 Q 56 215.0 70 215.0 L 150 215.0 Q 164 215.0 164 201.0 L 186 65.0 Z" fill="none" stroke="#c9d3dd" stroke-width="2.5" opacity=".8"/></g></g><text class="cup-cap" x="1500" y="642" text-anchor="middle">kaki + sakuranbo</text></g>
 
 <script>
 (function () {
@@ -83,9 +112,33 @@
   var INV  = {};
   PERM.forEach(function (b, t) { INV[b] = t; });
 
+  var smoothies = svg.querySelectorAll('.smoothie');
+  var openTimer = null;
+
+  function hideDrink() {
+    if (openTimer) { clearTimeout(openTimer); openTimer = null; }
+    smoothies.forEach(function (m) { m.classList.remove('show'); });
+  }
+
+  function showDrink(topIndex) {
+    var m = svg.querySelector('.smoothie[data-pair="' + topIndex + '"]');
+    if (!m) { return; }
+    m.classList.remove('show');
+    void svg.getBoundingClientRect();
+    m.classList.add('show');
+  }
+
+  smoothies.forEach(function (m) {
+    m.addEventListener('click', hideDrink);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { hideDrink(); }
+  });
+
   function clear() {
     pods.forEach(function (p) { p.classList.remove('shaking'); });
     links.forEach(function (l) { l.classList.remove('lit'); });
+    smoothies.forEach(function (m) { m.classList.remove('show'); });
   }
 
   function find(row, i) {
@@ -104,7 +157,10 @@
       if (el) el.classList.add('shaking');
     });
     var link = svg.querySelector('.pod-link[data-a="' + top + '"][data-b="' + bot + '"]');
-    if (link) link.classList.add('lit');
+    if (link) { link.classList.add('lit'); }
+    // let the shake read before the glass arrives
+    if (openTimer) { clearTimeout(openTimer); }
+    openTimer = setTimeout(function () { showDrink(top); }, 480);
   }
 
   pods.forEach(function (pod) {

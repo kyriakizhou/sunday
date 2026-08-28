@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buddy Pods, Implementation Details - Sunday</title>
+  <meta name="description"
+    content="Notes from building Buddy Pods: what a standby instance has to borrow to impersonate its buddy, and the three problems that were interesting to solve.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260827">
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="buddy-pod-disaster-recovery-instances.html">back / buddy pods</a>
+      <div class="page-title">
+        <h1>Buddy Pods: Implementation Details</h1>
+        <p>processing lag / borrowed identity / failover detection / testing without a fleet</p>
+      </div>
+
+      <section class="archive-panel detail-section">
+        <div class="lede">
+          <p>The <a href="buddy-pod-disaster-recovery-instances.html">project page</a> covers what Buddy Pods is and
+            the shape of the architecture. These are the notes underneath it: what a standby instance actually has to
+            borrow in order to impersonate its buddy, and the three problems that were genuinely interesting to
+            solve.</p>
+        </div>
+
+        <h3>What a standby has to borrow</h3>
+        <p>Entering buddy mode is a property swap. Every configuration key that identifies a pod has a parallel key
+          holding the buddy's value, and on switching, the buddy values are copied over the base keys before anything
+          reads them. The keys fall into two groups, and the split matters for what follows.</p>
+
+        <div class="code-block">  <b>Group 1 — identity: which pod's work is this?</b>
+
+    partition number        which shard's queue to claim work from
+    database url            where subscription reads and writes go
+    mail database url       where the email audit rows go
+    job lock location       which pod's instances to coordinate with
+
+  <b>Group 2 — health gate: am I allowed to process at all?</b>
+
+    healthcheck url         which pod's health endpoint to poll
+    datacenter type         PR or DR, which decides the failure default
+    datacenter status keys  the parallel status-check pathway</div>
+
+        <p>Group 1 is intuitive. Group 2 is the one that produced both of the bugs below, because it is the group that
+          answers <em>who am I</em>, and a standby in buddy mode has two answers to that question at the same time.</p>
+        <p>The health gate is the mechanism that decides whether the scheduler processes work or suspends. A primary
+          treats a failed health check as advisory and keeps going; a standby treats it as mandatory and stops. That
+          asymmetry is correct — a standby that cannot confirm it is healthy should not be writing. But it means a
+          standby impersonating a primary has to declare itself a primary, or the health gate will suspend it before it
+          processes anything.</p>
+
+        <h3>Interesting obstacles along the way</h3>
+
+        <h4>1. There was no standby fleet to test against</h4>
+        <p>The QA environment had no genuine standby instances for this service, so there was no way to exercise buddy
+          mode by waiting for one to appear. The workaround was to take a live QA instance and make it behave like a
+          standby by changing its JVM arguments, then flip its pod-mate the other way so the pod still had a declared
+          primary to health-check against. One instance pretending to be a standby, one instance pretending to be its
+          primary, both real.</p>
+        <p>The part worth recording is <em>why JVM arguments</em> rather than the shared config file. Three of the
+          required toggles change suspend behaviour for whichever instance reads them — enabling the health checker,
+          taking it out of read-only, and turning on the feature flag. In the shared properties file those would have
+          applied to every scheduler instance in the environment. On the JVM argument line they apply to exactly one
+          process. The blast radius of a test setup is part of the test setup.</p>
+
+        <h4>2. The restart loop</h4>
+        <p>The first version checked one heartbeat: its own primary. If the standby's own primary was healthy, it
+          entered buddy mode and started draining its buddy's queue. A periodic timer then re-checked health and shut
+          the instance down if anything had changed, so it could restart in its native standby role.</p>
+        <p>The failure came from the state nobody had checked. When the <em>buddy's</em> primary went into failover:</p>
+        <ul class="detail-list">
+          <li>The standby starts, sees its own primary healthy, and switches to buddy mode.</li>
+          <li>The periodic check fires, notices the buddy's primary is down, and shuts the instance down.</li>
+          <li>The instance restarts, sees its own primary healthy, and switches to buddy mode again.</li>
+        </ul>
+        <p>A mechanism designed to make the system self-healing was making it thrash, because the condition it checked
+          on the way in was not the same as the condition it checked on the way out. The fix was to make them
+          symmetric: check the buddy's primary <em>before</em> switching as well as in the periodic timer, so an
+          instance never enters a state it is about to be evicted from.</p>
+        <p>The same change added a startup delay to the periodic timer. The switch runs during application startup,
+          and with no delay the first health check could fire before the app server had finished attaching itself —
+          so the shutdown path would try to stop a server that did not exist yet. A crash loop hiding inside the
+          recovery path for a restart loop.</p>
+
+        <h4>3. Hot and cold property reads</h4>
+        <p>This is the one I would tell someone about. It happened twice, in two different disguises, before the shape
+          of it was obvious.</p>
+        <p><strong>The first time.</strong> The check for <em>am I a standby instance?</em> read the datacenter type
+          property — which is in the swap list. So after the swap it read "primary," and the instance concluded it was
+          a primary and therefore had nothing to do. The fix was a separate key holding the original datacenter type,
+          deliberately excluded from the swap.</p>
+        <p><strong>The second time.</strong> A standby in buddy mode watches two heartbeats, which means two health
+          check clients pointed at two different pods. The buddy client was constructed with an explicit URL. The local
+          client used the library's shared instance — and that shared instance resolves its URL <em>on every call</em>,
+          from the very key the swap had just repointed at the buddy.</p>
+
+        <div class="code-block">  the health check client resolves its url on every call
+
+    1.  scoped key      <i>in the swap list</i>  →  after the swap, the buddy's url
+    2.  unscoped key    the instance's own url   →  never reached, (1) was not null
+
+  <b>before</b>   local client = shared instance
+             → resolves (1) hot → polls the <i>buddy's</i> health
+             → own-primary failover is invisible → never stands down
+
+  <b>after</b>    local url = read once in the constructor, before any swap
+             local client = built explicitly with that url
+             → pinned to its own pod → failover detected → restarts as standby</div>
+
+        <p>Both health checks were asking the buddy pod how it was doing. Nothing errored. The logs looked healthy,
+          because the thing being reported on genuinely was healthy — it was just the wrong pod. The symptom only
+          appeared on failback, when pods returned to being the active side and found no scheduler processing their
+          work, because every standby that should have stood down was still cheerfully helping its buddy.</p>
+        <p>The generalisable rule, learned the second time: <strong>anything that has to survive the swap must be read
+          before the swap and passed explicitly.</strong> A property read is not a value, it is a question asked at a
+          particular moment, and hot-reading configuration means the answer can change under you. The first bug and
+          the second bug were the same bug — I just did not recognise it until it came back wearing a different
+          symptom.</p>
+
+        <h3>Knowing which instance is which</h3>
+        <p>A standby in buddy mode reads and writes its buddy's pod, so its log lines look exactly like a native
+          instance of that pod. There was no way to tell "this pod's own instance" from "another pod's standby
+          impersonating it," which made both rollout verification and incident triage guesswork.</p>
+        <p>The fix was two lines. The manager sets a system property when the swap succeeds and clears it on shutdown;
+          the log layout is configured to promote that property to a structured field on every line it emits. Three
+          things fall out of that shape:</p>
+        <ul class="detail-list">
+          <li><strong>Presence is the signal.</strong> The property exists only while the instance is in buddy mode,
+            so searching for the field at all returns exactly the set of instances currently borrowing an identity.
+            There is no separate flag to keep in sync with reality.</li>
+          <li><strong>The value is the buddy's pod</strong>, so a search can be narrowed to one pairing.</li>
+          <li><strong>No call sites changed.</strong> Because the layout adds it, every log line in the application
+            gained the field without threading anything through the worker code.</li>
+        </ul>
+
+        <h3>Safety switches</h3>
+        <p>Everything above describes a feature that makes standby instances stop being standby instances, which is a
+          slightly alarming sentence to write about disaster recovery capacity. The controls that made it acceptable
+          to run:</p>
+        <ul class="detail-list">
+          <li>A per-pod feature flag, so buddy mode can be turned off for one pairing without touching the rest.</li>
+          <li>Overrides that force either health check to report "down," so an operator can stand instances back into
+            their native role without waiting for a real failover.</li>
+          <li>A configurable check interval.</li>
+          <li>The activation rule itself: the standby lends capacity only when <em>both</em> primaries are healthy. In
+            every other combination it holds its native role, so failover readiness is never the thing being traded.</li>
+        </ul>
+
+        <h3>Where it landed</h3>
+        <p>Processing lag for that worker went from thirty minutes to an hour and a half, down to <strong>ten to
+          twenty seconds</strong>.</p>
+        <div class="code-block">  processing lag
+
+    before    30 min – 1.5 h
+    after     10 – 20 s
+              ────────────────────────────
+              roughly two orders of magnitude</div>
+        <p>At ten seconds the number stops describing a backlog and starts describing ordinary queue latency — the
+          work is simply caught up. Renewal notices and billing retries go out on the date they were scheduled for,
+          and it was paid for with capacity that was already bought, racked, and sitting idle.</p>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>
