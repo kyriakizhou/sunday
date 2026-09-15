@@ -4,17 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OpenAI–Hugging Face Agent Incident - Sunday</title>
+  <title>System Architecture Diagram and Mitigation Suggestions for the OpenAI–Hugging Face Incident - Sunday</title>
   <meta name="description"
     content="A system-architecture reconstruction of the July 2026 incident where OpenAI's evaluation agents built a covert channel, reached the internet, and compromised production infrastructure — with a concrete defense mapped to every step.">
   <link rel="stylesheet" href="../assets/css/site.css?v=20260823">
   <style>
     /* ---- incident page: scoped so nothing leaks into the rest of the site ---- */
     /* the incident content is one CENTERED column, so left & right margins are always equal */
-    .detail-section.incident { max-width: min(1440px, calc(100vw - 200px)); width: auto; margin-left: auto; margin-right: auto; }
+    .detail-section.incident,
+    .incident-head { max-width: min(1440px, calc(100vw - 200px)); width: auto; margin-left: auto; margin-right: auto; }
+    .incident-head .page-title { max-width: none; }
     .incident-fig { width: 100%; margin: 26px 0 12px; }
     /* lede text stays a readable width, left-aligned with the blocks */
-    .incident > .lede, .incident > p { max-width: 720px; }
+    .incident > .lede, .incident > p { max-width: none; }
     /* memo: a normal block filling the column (overrides the site's floating margin-note) */
     .detail-section.incident > .personal-note { position: static; top: auto; left: auto; width: 100%; max-width: none; box-sizing: border-box; margin: 30px 0 0; }
     .incident-scroll { overflow-x: auto; border: 1px solid rgba(6,29,73,0.1); background: #fff; padding: 16px 8px; }
@@ -79,10 +81,12 @@
 <body>
   <div class="site-shell">
     <main class="page-main">
-      <a class="back-link" href="../projects.html">back / projects</a>
-      <div class="page-title">
-        <h1>The OpenAI&ndash;Hugging Face Agent Incident</h1>
-        <p class="pub-date"><time datetime="2026-09-12">Published September 12, 2026</time></p>
+      <div class="incident-head">
+        <a class="back-link" href="../projects.html">back / projects</a>
+        <div class="page-title">
+          <h1>System Architecture Diagram and Mitigation Suggestions for the OpenAI&ndash;Hugging Face Incident</h1>
+          <p class="pub-date"><time datetime="2026-09-12">Published September 12, 2026</time></p>
+        </div>
       </div>
 
       <section class="archive-panel detail-section incident">
