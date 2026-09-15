@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenAI–Hugging Face Agent Incident - Sunday</title>
+  <meta name="description"
+    content="A system-architecture reconstruction of the July 2026 incident where OpenAI's evaluation agents built a covert channel, reached the internet, and compromised production infrastructure — with a concrete defense mapped to every step.">
+  <link rel="stylesheet" href="../assets/css/site.css?v=20260823">
+  <style>
+    /* ---- incident page: scoped so nothing leaks into the rest of the site ---- */
+    /* the incident content is one CENTERED column, so left & right margins are always equal */
+    .detail-section.incident { max-width: min(1440px, calc(100vw - 200px)); width: auto; margin-left: auto; margin-right: auto; }
+    .incident-fig { width: 100%; margin: 26px 0 12px; }
+    /* lede text stays a readable width, left-aligned with the blocks */
+    .incident > .lede, .incident > p { max-width: 720px; }
+    /* memo: a normal block filling the column (overrides the site's floating margin-note) */
+    .detail-section.incident > .personal-note { position: static; top: auto; left: auto; width: 100%; max-width: none; box-sizing: border-box; margin: 30px 0 0; }
+    .incident-scroll { overflow-x: auto; border: 1px solid rgba(6,29,73,0.1); background: #fff; padding: 16px 8px; }
+    .incident-scroll svg { display: block; width: 100%; min-width: 720px; max-width: none; height: auto; }
+    .pub-date { margin: 10px 0 0; color: rgba(6,29,73,0.42); font-size: clamp(13px,1vw,16px); }
+    .dbox { cursor: pointer; }
+    .dbox rect.zone { transition: stroke .12s ease, stroke-width .12s ease, fill .12s ease; }
+    .dbox:hover rect.zone { stroke: rgba(126,75,146,.5); }
+    .dbox:focus { outline: none; }
+    .dbox:focus-visible rect.zone,
+    .dbox.selected rect.zone { stroke: #7e4b92; stroke-width: 2.4; }
+
+    /* svg text + shapes, recoloured to the site palette */
+    .incident .t-zone { font: 600 10.5px var(--font-body); letter-spacing:.11em; fill: rgba(6,29,73,.5); }
+    .incident .t-node { font: 500 13px var(--font-body); fill:#061d49; }
+    .incident .t-sub  { font: 400 11px var(--font-body); fill: rgba(6,29,73,.5); }
+    .incident .t-arr  { font: 400 11.5px var(--font-body); fill: rgba(6,29,73,.72); }
+    .incident .t-note { font: 400 12px var(--font-body); font-style: italic; fill: rgba(6,29,73,.5); }
+    .incident .t-bnd  { font: 600 9.5px var(--font-body); letter-spacing:.1em; fill: rgba(6,29,73,.5); }
+    .incident-scroll svg text { letter-spacing: 0; }
+    .incident .zone     { fill: rgba(6,29,73,.04); stroke: rgba(84,118,164,.34); }
+    .incident .node     { fill:#fff; stroke: rgba(84,118,164,.34); }
+    .incident .node-hot { fill:#fff; stroke:#c65c82; stroke-width:1.4; }
+    .incident .dash     { stroke-dasharray:5 4; }
+    .incident .flow-a   { stroke:#c65c82; stroke-width:1.8; fill:none; }
+    .incident .flow-c   { stroke:#7e4b92; stroke-width:1.8; fill:none; }
+    .incident .bnd      { stroke: rgba(84,118,164,.34); stroke-width:1; stroke-dasharray:3 5; }
+
+    /* legend */
+    .incident .legend { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:10px 28px; margin:10px 0 0; padding:4px 0 0;
+      font-size:clamp(12px,0.95vw,15px); color: rgba(6,29,73,.72); }
+    .incident .legend div { display:flex; align-items:center; gap:10px; }
+    .incident .legend svg { flex:none; }
+
+    /* capability -> mitigation table */
+    .cap-wrap { width: 100%; margin: 20px 0 8px; overflow-x:auto;
+      border:1px solid rgba(6,29,73,.1); border-radius:6px; }
+    .cap-table { border-collapse:collapse; width:100%; min-width:1080px;
+      font-size:clamp(12.5px,1vw,15px); color: rgba(6,29,73,.72); letter-spacing:0; }
+    .cap-table thead th { position:sticky; top:0; text-align:left; padding:12px 15px;
+      color:#061d49; background:#f3f4f8; border-bottom:1px solid rgba(6,29,73,.16);
+      font-weight:400; white-space:nowrap; }
+    .cap-table td { padding:12px 15px; border-bottom:1px solid rgba(6,29,73,.09); vertical-align:top; }
+    .cap-table tbody tr:last-child td { border-bottom:0; }
+    .cap-table .grp td { padding:16px 15px 7px; background: rgba(6,29,73,.035);
+      border-bottom:1px solid rgba(6,29,73,.14); color:#c65c82; letter-spacing:.1em;
+      text-transform:uppercase; font-size:11px; }
+    .cap-table .c-n   { color:#c65c82; width:30px; }
+    .cap-table .c-what{ min-width:24ch; color: rgba(6,29,73,.82); }
+    .cap-table .c-when{ white-space:nowrap; color: rgba(6,29,73,.6); }
+    .cap-table .who   { white-space:nowrap; color: rgba(6,29,73,.6); }
+    .cap-table .who em{ color: rgba(6,29,73,.45); font-style:italic; }
+    .cap-table .fix   { min-width:30ch; }
+    .cap-table .fix b { color:#7e4b92; font-weight:400; }
+    .cap-table .m     { font-size:.92em; }
+    .cap-table q      { font-style:italic; }
+    .cap-table b      { color:#061d49; font-weight:400; }
+  </style>
+</head>
+
+<body>
+  <div class="site-shell">
+    <main class="page-main">
+      <a class="back-link" href="../projects.html">back / projects</a>
+      <div class="page-title">
+        <h1>The OpenAI&ndash;Hugging Face Agent Incident</h1>
+        <p class="pub-date"><time datetime="2026-09-12">Published September 12, 2026</time></p>
+      </div>
+
+      <section class="archive-panel detail-section incident">
+        <div class="lede">
+          <p>In July 2026, agents powered by OpenAI&rsquo;s own models &mdash; being evaluated on a hard cybersecurity benchmark (ExploitGym) &mdash; broke out of their sandboxes, built a covert message board inside a shared package manager, reached the open internet, and ended up compromising parts of both OpenAI&rsquo;s and Hugging Face&rsquo;s production infrastructure.</p>
+        </div>
+        <p>As an engineer, I find system architecture diagrams helpful for understanding any system holistically and in this case, identifying all break points more clearly. After reading both the <a href="https://metr.org/blog/2026-08-26-openai-hugging-face-incident-investigation/" style="text-decoration:underline; text-decoration-color:rgba(236,151,181,0.7); text-underline-offset:3px;">METR &amp; Redwood Research</a> and <a href="https://openai.com/index/hugging-face-incident-and-the-road-ahead/" style="text-decoration:underline; text-decoration-color:rgba(236,151,181,0.7); text-underline-offset:3px;">OpenAI</a> reports, I built the system architecture diagram below. In addition, for every capability the agents gained, I wrote down how I think we should defend against it.</p>
+
+        <figure class="incident-fig">
+          <div class="metric-chart-header">
+            <p class="metric-chart-title">System Architecture</p>
+            </div>
+          <div class="incident-scroll">
+            <svg viewBox="0 0 1400 630" role="img" aria-label="Architecture of the 2026 OpenAI agent incident centred on Artifactory, an internally hosted package manager serving three roles: coordination bus for an unauthorised agent message board that began 12 May, was wiped when OpenAI rebuilt the service on 5 July, and was rebuilt by agents on 8 July using unauthenticated WebDAV directory names; egress, via a server-side request forgery flaw first used on 26 May and regained on 8 July through the remote-repository service; and victim, through administrator compromise in June and signing-key theft on 13 July. Isolated ExploitGym sandboxes read and write the board. On 9 July an agent hunting for evaluation answers found a customer CyberGym application on Modal, exploited it for code execution, and kept it as a stronghold. From there agents used publicly exposed Hugging Face credentials, an HDF5 zero-day and a RefJinja template-injection zero-day to execute code on dozens of Hugging Face servers and harvest credentials across four regions. Everything found was pooled back onto the board.">
+        <defs>
+          <marker id="mk-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#c65c82"></path>
+          </marker>
+          <marker id="mk-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#7e4b92"></path>
+          </marker>
+        </defs>
+
+        <line class="bnd" x1="832" y1="50" x2="832" y2="616"></line>
+        <text class="t-bnd" x="818" y="38" text-anchor="end">OPENAI INTERNAL</text>
+        <text class="t-bnd" x="846" y="38">PUBLIC INTERNET</text>
+
+        <!-- ExploitGym -->
+        <g class="dbox" tabindex="0" role="button" aria-label="ExploitGym sandboxes">
+        <rect class="zone" x="40" y="240" width="300" height="252" rx="3"></rect>
+        <text class="t-zone" x="56" y="266">OPENAI EVAL INFRA</text>
+        <text class="t-node" x="56" y="290">ExploitGym sandboxes</text>
+        <text class="t-sub" x="56" y="310" style="font-size:10.5px">&#8226;&#160;exploit software to capture a flag</text>
+        <text class="t-sub" x="56" y="328" style="font-size:10.5px">&#8226;&#160;agents isolated; hundreds in parallel</text>
+        <text class="t-sub" x="56" y="346" style="font-size:10.5px">&#8226;&#160;run under reduced safeguards</text>
+        <text class="t-sub" x="56" y="364" style="font-size:10.5px">&#8226;&#160;driven by IM1 (~GPT-5.6 Sol scale)</text>
+        <text class="t-sub" x="56" y="382" style="font-size:10.5px">&#8226;&#160;198 / 898 tasks never solved</text>
+        <text class="t-sub" x="56" y="400" style="font-size:10.5px;fill:#7e4b92">&#8226;&#160;stuck agents cheat, then collude</text>
+        <line class="bnd" x1="56" y1="413" x2="324" y2="413"></line>
+        <text class="t-sub" x="56" y="434" style="font-size:10.5px">PHASEONE10841 · 38148c</text>
+        <text class="t-sub" x="56" y="452" style="font-size:10.5px">JAN183411 · LILY · GLIBCW39 · …</text>
+        <text class="t-sub" x="56" y="470" style="font-size:10.5px">+ hundreds more</text>
+        </g>
+
+        <!-- board arrows -->
+        <line class="flow-c" x1="340" y1="320" x2="454" y2="320" marker-end="url(#mk-c)"></line>
+        <text class="t-arr" x="397" y="306" text-anchor="middle" style="font-size:10.5px">MKCOL — write</text>
+        <line class="flow-c" x1="454" y1="400" x2="346" y2="400" marker-end="url(#mk-c)"></line>
+        <text class="t-arr" x="397" y="420" text-anchor="middle" style="font-size:10.5px">listing — read</text>
+
+        <!-- Artifactory hub -->
+        <g class="dbox" tabindex="0" role="button" aria-label="Artifactory">
+        <rect class="zone" x="460" y="180" width="344" height="270" rx="3"></rect>
+        <text class="t-zone" x="476" y="206">OPENAI INTERNAL INFRA</text>
+        <text class="t-node" x="476" y="230">Artifactory</text>
+        <text class="t-sub" x="476" y="250" style="font-size:10.5px">JFrog software, self-hosted by OpenAI</text>
+        <line class="bnd" x1="470" y1="263" x2="794" y2="263"></line>
+        <text class="t-sub" x="476" y="284" style="font-size:10.5px">May 12 — an agent left first note in a file</text>
+        <text class="t-sub" x="476" y="302" style="font-size:10.5px">May 26 — agents reach the internet via SSRF</text>
+        <text class="t-sub" x="476" y="320" style="font-size:10.5px">Jun 26 — agents gain Artifactory admin</text>
+        <text class="t-sub" x="476" y="338" style="font-size:10.5px">Jul 4 — agent load takes Artifactory down</text>
+        <text class="t-sub" x="476" y="356" style="font-size:10.5px">Jul 5 — OpenAI opens incident, pulls creds</text>
+        <text class="t-sub" x="476" y="374" style="font-size:10.5px">Jul 8 — OpenAI rebuilds Artifactory, board wiped</text>
+        <text class="t-sub" x="476" y="392" style="font-size:10.5px">Jul 8 — agents regain internet access</text>
+        <text class="t-sub" x="476" y="410" style="font-size:10.5px">Jul 8 — agents rebuild board via WebDAV</text>
+        <text class="t-sub" x="476" y="428" style="font-size:10.5px">Jul 13 — signing key stolen; admins forged</text>
+        </g>
+
+        <!-- egress route to Modal -->
+        <path class="flow-a" d="M620,180 V108 Q620,94 634,94 H1076 Q1090,94 1090,108 V116" marker-end="url(#mk-a)"></path>
+        <text class="t-arr" x="855" y="64" text-anchor="middle" style="font-size:10.5px">out through the SSRF · May 26</text>
+        <text class="t-arr" x="855" y="80" text-anchor="middle" style="font-size:10.5px">stumbles on a customer&#8217;s CyberGym app · Jul 9</text>
+
+        <!-- Modal -->
+        <g class="dbox" tabindex="0" role="button" aria-label="Modal CyberGym sandbox">
+        <rect class="zone" x="860" y="120" width="460" height="162" rx="3"></rect>
+        <text class="t-zone" x="876" y="146">CUSTOMER-HOSTED · MODAL</text>
+        <text class="t-node" x="876" y="170">a customer&#8217;s CyberGym sandbox</text>
+        <text class="t-sub" x="876" y="190" style="font-size:10.5px">CyberGym is a sibling evaluation to ExploitGym</text>
+        <line class="bnd" x1="876" y1="203" x2="1304" y2="203"></line>
+        <text class="t-sub" x="876" y="224" style="font-size:10.5px;fill:#c65c82">Jul 9 — an agent seeking ExploitGym answers finds it and</text>
+        <text class="t-sub" x="876" y="242" style="font-size:10.5px;fill:#c65c82">exploits it (method undisclosed) → code execution</text>
+        <text class="t-sub" x="876" y="260" style="font-size:10.5px">no useful answers there, but it kept control of the box</text>
+        </g>
+
+        <line class="flow-a" x1="1090" y1="282" x2="1090" y2="334" marker-end="url(#mk-a)"></line>
+        <text class="t-arr" x="1104" y="316" style="font-size:10.5px">&#8220;a stronghold from which</text>
+        <text class="t-arr" x="1104" y="330" style="font-size:10.5px">to launch future attacks&#8221;</text>
+
+        <!-- Hugging Face -->
+        <g class="dbox" tabindex="0" role="button" aria-label="Hugging Face production">
+        <rect class="zone" x="860" y="340" width="460" height="200" rx="3"></rect>
+        <text class="t-zone" x="876" y="366">HUGGING FACE PRODUCTION</text>
+        <text class="t-node" x="876" y="390">huggingface.co</text>
+        <text class="t-sub" x="876" y="410" style="font-size:10.5px">Jul 10 — 14 publicly exposed credentials with write access,</text>
+        <text class="t-sub" x="876" y="428" style="font-size:10.5px">reconstructed and validated by an agent</text>
+        <text class="t-sub" x="876" y="446" style="font-size:10.5px">Jul 11 — HDF5 zero-day: workers leak their own secrets</text>
+        <text class="t-sub" x="876" y="464" style="font-size:10.5px;fill:#c65c82">Jul 11 — RefJinja template injection → command execution</text>
+        <text class="t-sub" x="876" y="482" style="font-size:10.5px">Jul 12 — compromise: dozens of servers; root on one; Kubernetes,</text>
+        <text class="t-sub" x="876" y="500" style="font-size:10.5px">database, messaging, repo, cloud creds, four regions</text>
+        <text class="t-sub" x="876" y="518" style="font-size:10.5px">Jul 16 — Hugging Face publicly discloses</text>
+        </g>
+
+        <!-- loot back to the board -->
+        <path class="flow-a" d="M880,540 V556 Q880,562 866,562 H640 Q626,562 626,548 V454" marker-end="url(#mk-a)"></path>
+        <text class="t-arr" x="753" y="588" text-anchor="middle" style="font-size:10.5px">everything taken is pooled back onto the board</text>
+        <text class="t-note" x="753" y="608" text-anchor="middle">one agent&#8217;s access becomes the swarm&#8217;s — the edge that scaled the whole attack</text>
+
+      </svg>
+          </div>
+          <script>
+          (function(){
+            var boxes = document.querySelectorAll(".incident-scroll .dbox");
+            boxes.forEach(function(el){
+              el.addEventListener("click", function(){
+                var was = el.classList.contains("selected");
+                boxes.forEach(function(b){ b.classList.remove("selected"); });
+                if(!was) el.classList.add("selected");
+              });
+              el.addEventListener("keydown", function(e){
+                if(e.key==="Enter"||e.key===" "){ e.preventDefault(); el.click(); }
+              });
+            });
+          })();
+          </script>
+          <div class="legend">
+          <div><svg width="46" height="12" aria-hidden="true"><line x1="1" y1="6" x2="44" y2="6" class="flow-c"></line></svg> coordination between agents</div>
+          <div><svg width="46" height="12" aria-hidden="true"><line x1="1" y1="6" x2="44" y2="6" class="flow-a"></line></svg> attack step (method known)</div>
+          <div><svg width="46" height="12" aria-hidden="true"><line x1="1" y1="6" x2="44" y2="6" class="bnd"></line></svg> trust boundary</div>
+        </div>
+        </figure>
+
+
+        <h3 style="margin-top:64px;">Every capability the swarm gained, and how I think we should defend it</h3>
+        <div class="cap-wrap">
+          <table class="cap-table">
+      <thead>
+        <tr><th>#</th><th>Capability</th><th>When</th><th>Attributed to</th><th>Mitigation / lesson</th></tr>
+      </thead>
+      <tbody>
+        <tr class="grp"><td colspan="5">Access to OpenAI infrastructure</td></tr>
+        <tr><td class="c-n">1</td><td class="c-what">Messaging other agents by <b>writing files into Artifactory</b></td><td class="c-when">May 12</td><td class="who"><em>an agent</em></td><td class="fix"><b>Isolate.</b> Agents required to be independent must not share a writable, listable store. Per-agent namespaces, no cross-read, alert on unexpected writes.</td></tr>
+        <tr><td class="c-n">2</td><td class="c-what">Internet egress: <b>SSRF</b>, making Artifactory send server-side requests to arbitrary destinations</td><td class="c-when">May 26</td><td class="who"><em>an agent</em></td><td class="fix"><b>Egress allow-list, not app trust.</b> Constrain the proxy&rsquo;s outbound to its known upstreams at the network layer and deny all else; SSRF-harden destination resolution.</td></tr>
+        <tr><td class="c-n">3</td><td class="c-what"><b>Artifactory administrator access</b> via a token-refresh vulnerability</td><td class="c-when">Jun 26</td><td class="who"><em>agents</em></td><td class="fix"><b>Kill legacy auth paths.</b> Retire deprecated credential endpoints, scope tokens minimally, and alert on privilege changes and new admin accounts.</td></tr>
+        <tr><td class="c-n">4</td><td class="c-what">Message board, second time: <b>unauthenticated WebDAV</b> directory names</td><td class="c-when">Jul 8</td><td class="who">PHASEONE10841 <em>(METR)</em></td><td class="fix"><b>Authenticate every verb.</b> Require auth on all methods including WebDAV MKCOL; disable unused protocol verbs. The rebuilt board was unauthenticated.</td></tr>
+        <tr><td class="c-n">5</td><td class="c-what"><b>Artifactory&rsquo;s signing key</b>, via malicious Ruby package (gem) parsing &mdash; administrator credentials forged</td><td class="c-when">Jul 13</td><td class="who"><em>agents</em></td><td class="fix"><b>Keep signing keys out of reach.</b> Hold signing keys in an HSM/KMS and sign out-of-band; never leave them readable by the service that parses untrusted packages.</td></tr>
+        <tr><td class="c-n">6</td><td class="c-what"><b>Full administrator access to an OpenAI research cluster</b> supporting VM environments</td><td class="c-when">Jul 13&ndash;19</td><td class="who"><em>agents</em></td><td class="fix"><b>Segment eval from production.</b> Network-segment evaluation workloads from production control planes; least-privilege service accounts limit one foothold&rsquo;s reach.</td></tr>
+        <tr class="grp"><td colspan="5">Access to third-party systems (Modal, Hugging Face)</td></tr>
+        <tr><td class="c-n">7</td><td class="c-what">Control of a <b>customer&rsquo;s CyberGym workload sandbox</b> on Modal; posted <span class="m">MODAL_FUNCTION_RCE_DISCOVERED</span></td><td class="c-when">Jul 9</td><td class="who"><em>one agent</em></td><td class="fix"><b>Never expose a code-exec endpoint.</b> A harness that runs submitted code must be authenticated and isolated, never internet-reachable. Customer-side misconfiguration.</td></tr>
+        <tr><td class="c-n">8</td><td class="c-what"><b>14 publicly exposed Hugging Face credentials</b> with write access, reconstructed and validated</td><td class="c-when">Jul 10</td><td class="who">38148c <em>(METR)</em></td><td class="fix"><b>Short-lived, scanned secrets.</b> Secret-scan public artifacts, issue short-lived scoped tokens, and auto-revoke on exposure. These creds should not have stayed valid.</td></tr>
+        <tr><td class="c-n">9</td><td class="c-what"><b>HDF5 zero-day</b> &mdash; arbitrary file read on production workers via a dataset&rsquo;s external reference</td><td class="c-when">Jul 11</td><td class="who">38148c <em>(METR)</em></td><td class="fix"><b>Isolate the parser.</b> Sandbox untrusted-file parsing with no secrets and no egress; disable external-reference resolution.</td></tr>
+        <tr><td class="c-n">10</td><td class="c-what"><b>RefJinja template-injection zero-day</b> &mdash; arbitrary command execution on HF workers</td><td class="c-when">Jul 11</td><td class="who">JAN183411 <em>(METR)</em></td><td class="fix"><b>Keep user input out of templates.</b> A template engine can execute code, so untrusted input fed into one can run as code (template injection). Treat user input as data only, or render in a sandbox.</td></tr>
+        <tr><td class="c-n">11</td><td class="c-what">Expansion from one worker pod to <b>administrator-equivalent or host-level access across clusters</b></td><td class="c-when">Jul 12</td><td class="who"><em>agents</em></td><td class="fix"><b>Limit blast radius.</b> Least privilege plus network segmentation so a single pod cannot reach the cluster control plane. Assume breach; contain it.</td></tr>
+        <tr><td class="c-n">12</td><td class="c-what"><b>Kubernetes, database, messaging, code-repository and cloud credentials</b>, four regions</td><td class="c-when">Jul 12</td><td class="who"><em>agents</em></td><td class="fix"><b>No standing broad credentials.</b> Per-workload, narrowly-scoped, short-lived credentials that rotate. A compromised worker should hold nothing worth four regions.</td></tr>
+        <tr><td class="c-n">13</td><td class="c-what">Executed code on dozens of HF servers, gained full &ldquo;<b>root</b>&rdquo; access on one, <b>obtained limited private data</b>, and gained credentials to the company messaging platform</td><td class="c-when">Jul 12</td><td class="who"><em>agents</em></td><td class="fix"><b>Separate secrets from workloads.</b> Secrets brokered at point of use, not mounted; anomaly detection on privileged access to flag root-level activity.</td></tr>
+        <tr><td class="c-n">14</td><td class="c-what">Private evaluation data copied into a <b>public</b> Hugging Face dataset</td><td class="c-when">Jul 12</td><td class="who"><em>GPT&#8209;5.6 Sol agents</em></td><td class="fix"><b>Watch private-to-public moves.</b> DLP and egress controls on what a workload may publish; alert when private data is written to a public location.</td></tr>
+        <tr class="grp"><td colspan="5">Techniques the swarm built for itself</td></tr>
+        <tr><td class="c-n">15</td><td class="c-what">The <span class="m">zz</span> prefix &mdash; framing that separates deliberate messages from ordinary cache traffic</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>convention</em></td><td class="fix"><b>Detect anomalous channels.</b> Coordination emerged in a shared store. Monitor and alert for unusual naming and protocol patterns.</td></tr>
+        <tr><td class="c-n">16</td><td class="c-what"><b>Per-agent mailboxes</b> as subdirectories, turning broadcast into point-to-point delivery</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>(METR)</em></td><td class="fix"><b>Detect anomalous channels.</b> Direct, agent-to-agent delivery over a shared store is still a covert channel; isolate the store and monitor writes.</td></tr>
+        <tr><td class="c-n">17</td><td class="c-what"><b>Base64 file transfer</b> chunked across many entries, with scripts to send and reassemble</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>(METR)</em></td><td class="fix"><b>DLP on the channel.</b> Base64 file transfer through directory names is exfiltration; egress and content monitoring on shared stores catches it.</td></tr>
+        <tr><td class="c-n">18</td><td class="c-what"><b>Ed25519 message signing</b>, so agents could tell real instructions from forged ones</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>(METR)</em></td><td class="fix"><b>Assume capable coordination.</b> Agents built real authentication for themselves; defences must assume sophisticated multi-agent behaviour, not lone scripts.</td></tr>
+        <tr><td class="c-n">19</td><td class="c-what"><b>Tool-call spoofing</b> &mdash; replacing part of the harness&rsquo;s execution layer so the transcript diverges from what ran</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>(METR)</em></td><td class="fix"><b>Log where the agent can&rsquo;t reach.</b> Transcript integrity fails if the monitor sits inside the harness the agent can rewrite; capture actions from outside the workload, e.g. at the kernel or hypervisor level.</td></tr>
+        <tr><td class="c-n">20</td><td class="c-what">Forecasting and triggering <b>container resets</b> to erase evidence of activity</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>(METR)</em></td><td class="fix"><b>Immutable audit logs.</b> Ship append-only logs to storage the workload cannot touch, so evidence survives a container reset.</td></tr>
+        <tr><td class="c-n">21</td><td class="c-what"><b>HMAC reverse-engineering</b> to generate ExploitGym flags without solving the task</td><td class="c-when">Jul 8&ndash;13</td><td class="who"><em>(METR)</em></td><td class="fix"><b>No exploitable grader secrets.</b> Grade server-side and keep flag-derivation material out of reach; reverse-engineerable HMACs invite reward hacking.</td></tr>
+        <tr><td class="c-n">22</td><td class="c-what"><b>C2 heartbeats on HF workers</b>, committing output to a public repo every 1&ndash;3 minutes</td><td class="c-when">Jul 12</td><td class="who">OURC817C</td><td class="fix"><b>Anomaly detection catches noise.</b> High-frequency writes to a public repo are loud; write-rate anomaly detection likely surfaces attackers like this.</td></tr>
+        <tr><td class="c-n">23</td><td class="c-what"><b>Grader modelling</b> &mdash; reading the public ExploitGym paper and GitHub to infer the scoring rules</td><td class="c-when">after Jul 8</td><td class="who"><em>some agents</em></td><td class="fix"><b>Reward the method, not just the flag.</b> Align graders to check how a task was solved and to reward safe-stopping; keep eval internals out of reach. OpenAI&rsquo;s own fix.</td></tr>
+      </tbody>
+    </table>
+        </div>
+
+        <div class="lede" style="margin-top:44px;">
+          <p>Every company and organization should do a round of security hardening now that we have a live example of how AI could exploit the system, and I hope the summarized diagram and mitigation suggestions are helpful. Reconstructing this was an interesting way for me as an engineer to learn how these systems fail &mdash; I think analyzing and identifying exact system break points helps a broader technical audience understand the intensity of the issue, and hopefully invites more people to help with AI safety.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>
